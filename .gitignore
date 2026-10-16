@@ -1,0 +1,62 @@
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Local database and uploaded data
+*.sqlite
+*.sqlite3
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/external/*
+!data/external/.gitkeep
+uploads/
+*.xlsx
+*.xls
+*.csv
+
+# Keep only explicitly reviewed sample files
+!data/samples/README.md
+!data/samples/sample_financials.csv
+!data/samples/sample_customers.csv
+!data/samples/sample_products.csv
+
+# Generated model artifacts
+model_artifacts/*
+!model_artifacts/README.md
+!model_artifacts/.gitkeep
+*.joblib
+*.pkl
+*.pickle
+
+# Logs and operating system
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
