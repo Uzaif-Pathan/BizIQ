@@ -1,0 +1,30 @@
+{
+  "retail": {
+    "business_id": "11111111-1111-4111-8111-111111111111",
+    "name": "Demo General Store",
+    "business_type": "retail",
+    "industry": "grocery retail",
+    "location": "Nashik, Maharashtra"
+  },
+  "service": {
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "name": "Demo Tailoring Studio",
+    "business_type": "service",
+    "industry": "personal services",
+    "location": "Pune, Maharashtra"
+  },
+  "cold_start": {
+    "business_id": "33333333-3333-4333-8333-333333333333",
+    "name": "Demo New Cafe",
+    "business_type": "other",
+    "industry": "food and beverage",
+    "location": "Nagpur, Maharashtra"
+  },
+  "messy": {
+    "business_id": "44444444-4444-4444-8444-444444444444",
+    "name": "Demo Messy Records",
+    "business_type": "retail",
+    "industry": "general retail",
+    "location": "Thane, Maharashtra"
+  }
+}
