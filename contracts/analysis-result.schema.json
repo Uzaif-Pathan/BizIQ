@@ -18,7 +18,7 @@
   "properties": {
     "analysis_id": { "type": "string", "minLength": 1 },
     "business_id": { "type": "string", "minLength": 1 },
-    "status": { "enum": ["pending", "completed", "failed"] },
+    "status": { "enum": ["pending", "completed", "failed", "partial"] },
     "metrics": { "$ref": "#/$defs/Metrics" },
     "findings": { "type": "array", "items": { "$ref": "#/$defs/Finding" } },
     "recommendations": { "type": "array", "items": { "$ref": "#/$defs/Recommendation" } },
@@ -28,7 +28,62 @@
     "limitations": { "type": "array", "items": { "type": "string" } },
     "error_message": { "type": ["string", "null"] },
     "created_at": { "type": ["string", "null"], "format": "date-time" },
-    "completed_at": { "type": ["string", "null"], "format": "date-time" }
+    "completed_at": { "type": ["string", "null"], "format": "date-time" },
+    "error": {
+      "type": ["object", "null"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["errors", "warnings"],
+      "properties": {
+        "errors": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "health_score": {
+      "type": ["object", "null"],
+      "properties": {
+        "score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "weight", "basis"],
+            "properties": {
+              "name": { "type": "string" },
+              "weight": { "type": ["number", "null"] },
+              "value": { "type": ["number", "null"] },
+              "direction": { "enum": ["raises", "lowers", "neutral", null] },
+              "basis": { "enum": ["measured", "benchmark", "rule"] },
+              "base_weight": { "type": "number" },
+              "points": { "type": ["number", "null"] },
+              "effect_points": { "type": ["number", "null"] },
+              "metric": { "type": "string" },
+              "explanation": { "type": "string" },
+              "benchmark": { "type": "object" }
+            }
+          }
+        },
+        "unavailable_components": { "type": "array", "items": { "type": "string" } },
+        "limitations": { "type": "array", "items": { "type": "string" } },
+        "band": { "enum": ["strong", "moderate", "weak", "at risk", null] },
+        "coverage_pct": { "type": "number" },
+        "raised_by": { "type": "array", "items": { "type": "string" } },
+        "lowered_by": { "type": "array", "items": { "type": "string" } },
+        "disclaimer": { "type": "string" }
+      }
+    },
+    "models": {
+      "type": "object",
+      "properties": {
+        "segmentation": { "$ref": "#/$defs/model" },
+        "forecast": { "$ref": "#/$defs/model" }
+      }
+    }
   },
   "if": { "properties": { "status": { "const": "failed" } }, "required": ["status"] },
   "then": {
@@ -38,7 +93,6 @@
   "$defs": {
     "Metrics": {
       "type": "object",
-      "description": "Headline metrics in INR (profit_margin in percent). null = could not be calculated. Extra numeric metrics are allowed.",
       "properties": {
         "revenue": { "type": ["number", "null"] },
         "expenses": { "type": ["number", "null"] },
@@ -53,9 +107,7 @@
       "additionalProperties": false,
       "properties": {
         "finding_id": { "type": "string", "minLength": 1 },
-        "category": {
-          "enum": ["financial", "customer", "product", "trend", "benchmark", "data_quality"]
-        },
+        "category": { "enum": ["financial", "customer", "product", "trend", "benchmark", "data_quality"] },
         "title": { "type": "string" },
         "description": { "type": "string" },
         "metric_name": { "type": ["string", "null"] },
@@ -90,9 +142,27 @@
         },
         "evidence": { "type": "array", "items": { "type": "string" } },
         "kpi": { "type": ["string", "null"] },
+        "supporting_metric": { "type": ["string", "null"] },
+        "rationale": { "type": "string" },
+        "rule_id": { "type": "string" },
         "expected_direction": {
-          "enum": ["increase", "decrease", "maintain", null]
-        }
+          "type": ["object", "null"],
+          "properties": {
+            "metric": { "type": "string" },
+            "direction": { "enum": ["increase", "decrease"] }
+          }
+        },
+        "caveat": { "type": "string" }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["ok", "skipped_insufficient_data", "not_applicable", "failed"] },
+        "mae": { "type": ["number", "null"] },
+        "rmse": { "type": ["number", "null"] },
+        "details": { "type": "object" }
       }
     }
   }
