@@ -2,11 +2,9 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import health
+from app.api.v1.endpoints import analyses, businesses, health
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["Health"])
-
-# Later (examples):
-# from app.api.v1.endpoints import businesses
-# api_router.include_router(businesses.router, prefix="/businesses", tags=["Businesses"])
+api_router.include_router(businesses.router, prefix="/businesses", tags=["Businesses"])
+api_router.include_router(analyses.router, tags=["Analyses"])

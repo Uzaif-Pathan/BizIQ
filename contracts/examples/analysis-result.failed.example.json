@@ -1,0 +1,20 @@
+{
+  "analysis_id": "sample-analysis-002",
+  "business_id": "sample-business-001",
+  "status": "failed",
+  "metrics": {
+    "revenue": null,
+    "expenses": null,
+    "profit": null,
+    "profit_margin": null
+  },
+  "findings": [],
+  "recommendations": [],
+  "evidence_level": "insufficient",
+  "benchmark_status": "unavailable",
+  "method_version": "0.1.0",
+  "limitations": [],
+  "error_message": "Analysis could not be completed: the financial data import contains no valid rows.",
+  "created_at": "2026-10-16T11:00:00Z",
+  "completed_at": "2026-10-16T11:00:01Z"
+}
