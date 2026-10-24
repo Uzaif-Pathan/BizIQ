@@ -192,3 +192,21 @@ export function businessToApi(f: { name: string; industry: string; type: string;
     state: state || null,
   };
 }
+
+// Profile form -> PATCH payload. Only fields the backend knows about are sent.
+// ASSUMPTIONS (Person 3 has not confirmed): stages "Idea"/"Launching" -> "new",
+// every other stage -> "established". Team size, website and currency stay on this device only.
+export function businessUpdateFromProfile(f: {
+  name: string; industry: string; type: string; location: string; description: string; stage: string;
+}): BusinessUpdate {
+  const [city, state] = f.location.split(',').map((s) => s.trim());
+  return {
+    name: f.name.trim(),
+    industry: f.industry,
+    business_type: f.type.toLowerCase() as BusinessType,
+    city: city || null,
+    state: state || null,
+    description: f.description.trim() || null,
+    stage: ['Idea', 'Launching'].includes(f.stage) ? 'new' : 'established',
+  };
+}
