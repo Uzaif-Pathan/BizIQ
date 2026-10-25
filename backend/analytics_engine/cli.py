@@ -145,12 +145,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--summary", action="store_true",
                         help="Print a human-readable summary instead of raw JSON (ignored with --output)")
     parser.add_argument("--check-schema", action="store_true",
-                        help="Validate the result against contracts/analysis-result.schema.json")
+                        help="Validate the result against contracts/engine-result.schema.json")
     args = parser.parse_args(argv)
 
     repo_root = Path(__file__).resolve().parents[2]
     samples_dir = args.samples_dir or repo_root / "data" / "samples"
-    schema_path = repo_root / "contracts" / "analysis-result.schema.json"
+    schema_path = repo_root / "contracts" / "engine-result.schema.json"
     try:
         business, data = _load_scenario(samples_dir, args.scenario)
     except (OSError, ValueError, json.JSONDecodeError) as exc:

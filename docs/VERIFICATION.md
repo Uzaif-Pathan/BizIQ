@@ -2,7 +2,7 @@
 
 Last verified in the project workspace during Part 2 completion.
 
-- Automated tests: **273 passed**.
+- Automated tests: **360 passed**.
 - Synthetic scenarios: **4 passed** (`retail`, `service`, `cold_start`, `messy`).
 - JSON serialization: strict `allow_nan=False` check passed for every scenario.
 - JSON contract: each scenario output validated against `contracts/analysis-result.schema.json`.

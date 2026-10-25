@@ -205,7 +205,7 @@ def test_limited_data_samples_get_no_score_and_say_why(scenario):
 
 def test_health_score_matches_contract_schema():
     jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads((SAMPLES.parents[1] / "contracts" / "analysis-result.schema.json").read_text())
+    schema = json.loads((SAMPLES.parents[1] / "contracts" / "engine-result.schema.json").read_text())
     ref = {"$ref": "#/properties/health_score", "$defs": schema["$defs"], "properties": schema["properties"]}
     for scenario in ("retail", "service", "cold_start"):
         jsonschema.validate(compute_health_score(*_analyse(scenario)), ref)

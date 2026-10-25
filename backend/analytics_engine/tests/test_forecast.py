@@ -123,7 +123,7 @@ def test_sample_datasets(scenario, status):
 
 def test_model_object_matches_contract_schema():
     jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads((SAMPLES.parents[1] / "contracts" / "analysis-result.schema.json").read_text())
+    schema = json.loads((SAMPLES.parents[1] / "contracts" / "engine-result.schema.json").read_text())
     ref = {"$ref": "#/$defs/model", "$defs": schema["$defs"]}
     for m in (forecast_revenue(series([1000 + 100 * i for i in range(12)])), forecast_revenue(None),
               forecast_revenue(series([100] * 5))):

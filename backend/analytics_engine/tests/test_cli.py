@@ -20,7 +20,7 @@ def test_retail_pipeline_result_matches_schema():
     samples = ROOT / "data" / "samples"
     business, data = _load_scenario(samples, "retail")
     result = run_analysis(business, data)
-    errors = _validate_schema(result, ROOT / "contracts" / "analysis-result.schema.json")
+    errors = _validate_schema(result, ROOT / "contracts" / "engine-result.schema.json")
     assert errors == [], "\\n".join(errors)
     # Ensure the result is actually JSON serializable without NaN/Infinity.
     json.dumps(result, allow_nan=False)

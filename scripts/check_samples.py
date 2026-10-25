@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Run every bundled synthetic scenario and verify the JSON contract."""
+"""Run every bundled synthetic scenario and verify both JSON contracts.
+
+* the engine's native result against contracts/engine-result.schema.json
+* the adapter's API result against contracts/analysis-result.schema.json (what the backend/frontend receive)
+"""
 from __future__ import annotations
 
 import json
@@ -11,6 +15,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 
 from analytics_engine.cli import _load_scenario, _validate_schema  # noqa: E402
 from analytics_engine import run_analysis  # noqa: E402
+from analytics_engine.api_adapter import to_api_result  # noqa: E402
 
 
 def main() -> int:
@@ -24,7 +29,9 @@ def main() -> int:
         result = run_analysis(business, data)
         # Enforce strict JSON serialization, including rejection of NaN/Infinity.
         json.dumps(result, allow_nan=False)
-        errors = _validate_schema(result, ROOT / "contracts" / "analysis-result.schema.json")
+        json.dumps(to_api_result(result), allow_nan=False)
+        errors = [f"engine: {e}" for e in _validate_schema(result, ROOT / "contracts" / "engine-result.schema.json")]
+        errors += [f"api: {e}" for e in _validate_schema(to_api_result(result), ROOT / "contracts" / "analysis-result.schema.json")]
         ok = not errors and result.get("status") != "failed"
         print(f"{'PASS' if ok else 'FAIL'}  {name:12} status={result.get('status'):9} "
               f"evidence={result.get('evidence_level')}")
