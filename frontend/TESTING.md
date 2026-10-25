@@ -84,10 +84,11 @@ date,revenue,expenses,notes
 ## 6. Build
 
 - `npm run build` in `frontend/` finishes with `✓ built`.
+- `npm test` in `frontend/` reports all tests passed.
 
 ## Known limits
 
 - Accounts, uploads and deleting a business are local-only.
 - The dashboard chart and the revenue/expense cards are demo data.
 - Results are placeholders until the backend uses a real analysis engine.
-- There are no automated frontend tests yet.
+- Automated tests (`npm test`) cover the API client and helper functions only, not the screens.

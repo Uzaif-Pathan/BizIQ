@@ -15,6 +15,7 @@ import {
 
 import { api, ApiError, describeError, businessFromApi, businessToApi, businessCreateFromLocal, businessUpdateFromProfile } from './services/api';
 import { migrateBusinessId } from './utils/businessState';
+import { currency, pct } from './utils/format';
 import { useLatestAnalysis } from './hooks/useLatestAnalysis';
 const STORE_KEY = 'biziq-state-v2';
 const navItems = [
@@ -39,7 +40,6 @@ const monthly = [
 ];
 const DATA_YEAR = new Date().getFullYear();
 const monthlyDated = monthly.map((m,i)=>({...m,idx:i-2}));
-const currency = n => (n === null || n === undefined || Number.isNaN(Number(n))) ? '—' : new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(Number(n));
 const emptyWorkspace = () => ({businesses:[], selected:null, profiles:{}, uploads:{}, recs:{}});
 const initialRoot = () => {
   try { const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if (saved && Array.isArray(saved.accounts)) return {accounts:saved.accounts, workspaces:saved.workspaces||{}, user:saved.user||null, settingsOpen:false}; } catch {}
@@ -195,7 +195,6 @@ function AddBusinessForm({onAdd}){
   }
   return <form className="stack-form" onSubmit={submit}><label>Business name</label><input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Cornerstone Studio" minLength={2} maxLength={200} required/><label>Industry</label><select className="input" value={industry} onChange={e=>setIndustry(e.target.value)}><option>Retail</option><option>Food service</option><option>Professional services</option><option>Healthcare</option><option>Education</option><option>Manufacturing</option><option>Other</option></select><label>Business model</label><div className="choice-row"><button type="button" className={`choice ${type==='Retail'?'chosen':''}`} onClick={()=>setType('Retail')}><Package size={17}/> Product / Retail</button><button type="button" className={`choice ${type==='Service'?'chosen':''}`} onClick={()=>setType('Service')}><BriefcaseBusiness size={17}/> Service business</button></div><label>City, State</label><input className="input" value={location} onChange={e=>setLocation(e.target.value)} placeholder="e.g. Nashik, Maharashtra" required/>{error&&<div className="inline-message warn"><AlertCircle size={16}/> {error}</div>}<Button type="submit" disabled={busy}><Plus size={15}/> {busy?'Creating…':'Create business'}</Button></form>}
 
-const pct = n => (n === null || n === undefined || Number.isNaN(Number(n))) ? '—' : `${Number(n).toFixed(1)}%`;
 function AnalysisPanel({business,res}){
   const {analysis,loading,running,error,run,onServer}=res;
   const isMock=!!analysis?.method_version&&analysis.method_version.startsWith('mock');
