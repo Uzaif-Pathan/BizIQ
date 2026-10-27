@@ -15,7 +15,7 @@ import {
 
 import { api, ApiError, describeError, businessFromApi, businessToApi, businessUpdateFromProfile } from './services/api';
 import { useLatestAnalysis } from './hooks/useLatestAnalysis';
-import { getSeries, hasFinancialSeries, financialChartRows, sumKnown, seriesBounds, latestCustomerValue, endOfMonth, periodLabel } from './utils/series';
+import { getSeries, hasFinancialSeries, financialChartRows, sumKnown, seriesBounds, latestCustomerValue, endOfMonth, periodLabel, customerChartRows, productRows, monthOverMonth } from './utils/series';
 const STORE_KEY = 'biziq-state-v2';
 const navItems = [
   ['dashboard','Dashboard',LayoutDashboard],
@@ -336,7 +336,137 @@ function Report({state,business}){
   return <><PageHeader eyebrow="REPORT BUILDER" title="Final report" actions={<Button onClick={exportReport}><Download size={15}/> Export report</Button>}/>{banner&&<div className="inline-message warn"><AlertCircle size={16}/> {banner}</div>}<div className="report-layout"><section className="panel report-options"><div className="panel-heading"><div><h3>Report sections</h3></div><FileText size={19} className="muted"/></div>{[['overview','Business overview','Profile, industry and reporting context'],['financial','Financial analysis','Revenue, costs and financial metrics'],['customers','Customer analysis','Segments, retention and behaviour'],['recommendations','Recommendations','Prioritised actions and rationale'],['limitations','Data limitations','Coverage, assumptions and caveats']].map(([k,t,d])=><label className="report-option" key={k}><input type="checkbox" checked={include[k]} onChange={e=>setInclude(s=>({...s,[k]:e.target.checked}))}/><span><strong>{t}</strong><small>{d}</small></span></label>)}<div className="report-bottom"><span/><Button onClick={exportReport}><Download size={15}/> Export CSV</Button></div></section><aside className="report-preview"><div className="preview-paper"><div className="preview-brand"><span className="brand-mark">b.</span><span>BizIQ</span><span className="preview-label">BUSINESS REPORT</span></div><div className="preview-rule"/><div className="eyebrow">BUSINESS INTELLIGENCE</div><h2>{business.name}</h2><p className="muted">{business.industry} · {business.location}</p><div className="preview-rule"/>{banner&&<div className="preview-warning"><AlertCircle size={16}/><span>{banner}</span></div>}{Object.entries(include).filter(([k,v])=>v).map(([k])=><div className="preview-section" key={k}><span>{NUM[k]}</span><div><strong>{TITLE[k]}</strong><p>{previewText[k]}</p></div></div>)}<div className="preview-rule"/><span className="preview-footer">Prepared with BizIQ · {new Date().toLocaleDateString('en-IN')}</span></div></aside></div></>;
 }
 
-function RoutePage({state,setState}){const {businessId,section}=useParams();const business=state.businesses.find(b=>b.id===businessId);useEffect(()=>{if(business&&state.selected!==business.id)setState(s=>({...s,selected:business.id}));},[business?.id]);if(!business)return <Navigate to="/businesses" replace/>;if(section==='dashboard')return <Dashboard key={business.id} state={state} setState={setState} business={business}/>;if(section==='profile')return <BusinessProfile key={business.id} state={state} setState={setState} business={business}/>;if(section==='update-data')return <UpdateData key={business.id} state={state} setState={setState} business={business}/>;if(section==='findings')return <Findings key={business.id} state={state} business={business}/>;if(section==='recommendations')return <Recommendations key={business.id} state={state} setState={setState} business={business}/>;if(section==='report')return <Report key={business.id} state={state} business={business}/>;const kind=section==='financial'?'financial':section==='customers'?'customers':section==='products'?'products':section==='trends'?'trends':section==='market'?'market':null;if(kind)return <AnalysisPage key={business.id} kind={kind} state={state} business={business}/>;return <Navigate to={`/business/${business.id}/dashboard`} replace/>;}
+const countFmt = n => (n === null || n === undefined || Number.isNaN(Number(n))) ? '—' : new Intl.NumberFormat('en-IN',{maximumFractionDigits:1}).format(Number(n));
+const signedPct = n => (n === null || n === undefined) ? '—' : `${n>=0?'+':''}${n.toFixed(1)}%`;
+const compactAxis = v => Math.abs(v)>=1000?`${v/1000}k`:`${v}`;
+function DataTable({columns,rows}){return <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:14}}><thead><tr>{columns.map(c=><th key={c.key} style={{textAlign:c.align||'left',padding:'8px 10px',borderBottom:'1px solid #e8e8e5',color:'#858681',fontWeight:500,whiteSpace:'nowrap'}}>{c.label}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={r.period||r.id||i}>{columns.map(c=><td key={c.key} style={{textAlign:c.align||'left',padding:'8px 10px',borderBottom:'1px solid #f0f0ee'}}>{c.render?c.render(r):r[c.key]}</td>)}</tr>)}</tbody></table></div>;}
+const SERIES_PAGES = {
+  financial:['FINANCIAL ANALYSIS','Know where the money goes','Monthly revenue, expenses and profit from your analysis. A gap means no value was recorded for that month.',Wallet],
+  customers:['CUSTOMER ANALYSIS','Understand your customers','Active customers, spend and transactions by month. A gap means no value was recorded.',Users],
+  products:['PRODUCT & SERVICE ANALYSIS','See what sells and what doesn’t','Revenue, cost and margin by product or service, ranked by revenue.',Package],
+  trends:['TRENDS & BENCHMARKS','Put changes in context','Month-over-month movement from your own records. Benchmarks appear only when the server provides them.',TrendingUp]
+};
+const chartTip = {contentStyle:{border:'1px solid #e8e8e5',borderRadius:10,fontSize:14}};
+function SeriesPage({kind,business}){
+  const res=useLatestAnalysis(business);
+  const gate=analysisGate(business,res,'analysis');
+  const mock=isMockAnalysis(res.analysis);
+  const series=getSeries(res.analysis);
+  const meta=SERIES_PAGES[kind];
+  const missing=(what)=><EmptyState icon={meta[3]} title={`No ${what} in this analysis`} body="The server did not return this data, so nothing is shown. BizIQ does not fill gaps with zeros or assumptions."/>;
+  let body=null;
+  if(!gate&&!mock){
+    if(kind==='financial'){
+      const rows=financialChartRows(series);
+      if(!rows.length)body=missing('monthly financial figures');
+      else{
+        const rev=sumKnown(rows,'revenue'),exp=sumKnown(rows,'expenses'),prof=sumKnown(rows,'profit');
+        const flagged=rows.filter(r=>r.needsReview||r.expensesExceedRevenue||!r.expensesComplete).length;
+        body=<>
+          <div className="stats-grid">
+            <StatCard label="Total revenue" value={currency(rev.total)} detail={`${rows.length-rev.missing} of ${rows.length} months with revenue`} icon={Wallet}/>
+            <StatCard label="Total expenses" value={currency(exp.total)} detail={`${rows.length-exp.missing} of ${rows.length} months with expenses`} icon={Activity}/>
+            <StatCard label="Profit (known months)" value={currency(prof.total)} detail={`${rows.length-prof.missing} of ${rows.length} months with profit`} icon={TrendingUp}/>
+            <StatCard label="Months to review" value={String(flagged)} detail="Incomplete expenses or above revenue" icon={AlertCircle}/>
+          </div>
+          <section className="panel" style={{marginBottom:24}}>
+            <div className="panel-heading"><div><h3>Revenue & expenses</h3><p>Monthly view · INR</p></div></div>
+            <div className="chart-area"><ResponsiveContainer width="100%" height="100%"><BarChart data={rows} margin={{top:10,right:5,left:0,bottom:0}}><CartesianGrid strokeDasharray="3 5" vertical={false} stroke="#e9e9e7"/><XAxis dataKey="month" tickLine={false} axisLine={false}/><YAxis tickLine={false} axisLine={false} tickFormatter={compactAxis} width={42}/><Tooltip formatter={v=>currency(v)} {...chartTip}/><Legend/><Bar dataKey="revenue" name="Revenue" fill="#4568d4" radius={[4,4,0,0]}/><Bar dataKey="expenses" name="Expenses" fill="#b5a18d" radius={[4,4,0,0]}/></BarChart></ResponsiveContainer></div>
+          </section>
+          <section className="panel"><div className="panel-heading"><div><h3>Month by month</h3></div></div>
+            <DataTable rows={rows} columns={[
+              {key:'month',label:'Month',render:r=>r.period},
+              {key:'revenue',label:'Revenue',align:'right',render:r=>currency(r.revenue)},
+              {key:'expenses',label:'Expenses',align:'right',render:r=>currency(r.expenses)},
+              {key:'profit',label:'Profit',align:'right',render:r=>currency(r.profit)},
+              {key:'notes',label:'Notes',render:r=>[!r.expensesComplete&&'Expenses incomplete',r.expensesExceedRevenue&&'Expenses above revenue',r.needsReview&&'Needs review'].filter(Boolean).join(' · ')||'—'}
+            ]}/>
+          </section>
+        </>;
+      }
+    }
+    if(kind==='customers'){
+      const rows=customerChartRows(series);
+      if(!rows.length)body=missing('monthly customer figures');
+      else{
+        const latest=latestCustomerValue(series),spend=sumKnown(rows,'spend'),tx=sumKnown(rows,'transactions');
+        body=<>
+          <div className="stats-grid">
+            <StatCard label="Active customers" value={latest?countFmt(latest.value):'—'} detail={latest?`Latest known month, ${periodLabel(latest.period)}`:'No month has a value'} icon={Users}/>
+            <StatCard label="Total spend" value={currency(spend.total)} detail={`${rows.length-spend.missing} of ${rows.length} months with spend`} icon={Wallet}/>
+            <StatCard label="Transactions" value={countFmt(tx.total)} detail={`${rows.length-tx.missing} of ${rows.length} months with transactions`} icon={Activity}/>
+          </div>
+          <section className="panel" style={{marginBottom:24}}>
+            <div className="panel-heading"><div><h3>Active customers</h3><p>Monthly view · gaps mean no value was recorded</p></div></div>
+            <div className="chart-area"><ResponsiveContainer width="100%" height="100%"><AreaChart data={rows} margin={{top:10,right:5,left:0,bottom:0}}><CartesianGrid strokeDasharray="3 5" vertical={false} stroke="#e9e9e7"/><XAxis dataKey="month" tickLine={false} axisLine={false}/><YAxis tickLine={false} axisLine={false} width={42}/><Tooltip {...chartTip}/><Area type="monotone" dataKey="activeCustomers" name="Active customers" stroke="#4568d4" strokeWidth={2.3} fill="transparent" connectNulls={false} dot/></AreaChart></ResponsiveContainer></div>
+          </section>
+          <section className="panel"><div className="panel-heading"><div><h3>Month by month</h3></div></div>
+            <DataTable rows={rows} columns={[
+              {key:'period',label:'Month'},
+              {key:'activeCustomers',label:'Active customers',align:'right',render:r=>countFmt(r.activeCustomers)},
+              {key:'spend',label:'Spend',align:'right',render:r=>currency(r.spend)},
+              {key:'transactions',label:'Transactions',align:'right',render:r=>countFmt(r.transactions)}
+            ]}/>
+          </section>
+        </>;
+      }
+    }
+    if(kind==='products'){
+      const rows=productRows(series);
+      if(!rows.length)body=missing('product or service figures');
+      else{
+        const rev=sumKnown(rows,'revenue');const top=rows.find(r=>r.rank!==null);
+        body=<>
+          <div className="stats-grid">
+            <StatCard label="Products / services" value={String(rows.length)} detail="In this analysis" icon={Package}/>
+            <StatCard label="Total revenue" value={currency(rev.total)} detail={`${rows.length-rev.missing} of ${rows.length} with revenue`} icon={Wallet}/>
+            <StatCard label="Top by revenue" value={top?top.name:'—'} detail={top?`${pct(top.revenueSharePct)} of revenue`:'No ranking available'} icon={Target}/>
+          </div>
+          <section className="panel" style={{marginBottom:24}}>
+            <div className="panel-heading"><div><h3>Revenue by product</h3><p>Top {Math.min(rows.length,8)} · INR</p></div></div>
+            <div className="chart-area"><ResponsiveContainer width="100%" height="100%"><BarChart data={rows.slice(0,8)} margin={{top:10,right:5,left:0,bottom:0}}><CartesianGrid strokeDasharray="3 5" vertical={false} stroke="#e9e9e7"/><XAxis dataKey="name" tickLine={false} axisLine={false}/><YAxis tickLine={false} axisLine={false} tickFormatter={compactAxis} width={42}/><Tooltip formatter={v=>currency(v)} {...chartTip}/><Bar dataKey="revenue" name="Revenue" fill="#4568d4" radius={[4,4,0,0]}/></BarChart></ResponsiveContainer></div>
+          </section>
+          <section className="panel"><div className="panel-heading"><div><h3>All products and services</h3></div></div>
+            <DataTable rows={rows} columns={[
+              {key:'rank',label:'Rank',render:r=>r.rank===null?'—':r.rank},
+              {key:'name',label:'Name'},
+              {key:'revenue',label:'Revenue',align:'right',render:r=>currency(r.revenue)},
+              {key:'unitsSold',label:'Units',align:'right',render:r=>countFmt(r.unitsSold)},
+              {key:'cost',label:'Cost',align:'right',render:r=>currency(r.cost)},
+              {key:'grossProfit',label:'Gross profit',align:'right',render:r=>currency(r.grossProfit)},
+              {key:'grossMarginPct',label:'Margin',align:'right',render:r=>pct(r.grossMarginPct)},
+              {key:'revenueSharePct',label:'Share',align:'right',render:r=>pct(r.revenueSharePct)}
+            ]}/>
+          </section>
+        </>;
+      }
+    }
+    if(kind==='trends'){
+      const rows=financialChartRows(series);
+      const mom=monthOverMonth(rows,'revenue');
+      const notes=(res.analysis?.findings||[]).filter(f=>f.category==='trend'||f.category==='benchmark');
+      body=<>
+        <section className="panel" style={{marginBottom:24}}>
+          <div className="panel-heading"><div><h3>Benchmarks</h3></div><Tag tone={res.analysis?.benchmark_status==='available'?'green':'neutral'}>{res.analysis?.benchmark_status||'unavailable'}</Tag></div>
+          <p className="small-text muted">{res.analysis?.benchmark_status==='available'?'Comparisons below come from the server with their evidence.':'No source-backed benchmark was provided, so no industry comparison is shown.'}</p>
+          {notes.length>0&&<ul className="small-text">{notes.map(f=><li key={f.finding_id}><strong>{f.title}</strong> — {f.description}</li>)}</ul>}
+        </section>
+        {!rows.length?missing('monthly financial figures'):<section className="panel">
+          <div className="panel-heading"><div><h3>Revenue change, month over month</h3><p>A change is shown only when both months have a recorded value.</p></div></div>
+          <DataTable rows={mom} columns={[
+            {key:'period',label:'Month'},
+            {key:'value',label:'Revenue',align:'right',render:r=>currency(r.value)},
+            {key:'change',label:'Change',align:'right',render:r=>currency(r.change)},
+            {key:'percent',label:'Change %',align:'right',render:r=>signedPct(r.percent)}
+          ]}/>
+        </section>}
+      </>;
+    }
+  }
+  return <><PageHeader eyebrow={meta[0]} title={meta[1]} subtitle={meta[2]}/>{gate||<>{mock&&<SampleBanner/>}{mock?<EmptyState icon={meta[3]} title="Sample output only" body="The server is still using its development engine, so no figures are shown on this page until real results arrive."/>:body}</>}</>;
+}
+
+function RoutePage({state,setState}){const {businessId,section}=useParams();const business=state.businesses.find(b=>b.id===businessId);useEffect(()=>{if(business&&state.selected!==business.id)setState(s=>({...s,selected:business.id}));},[business?.id]);if(!business)return <Navigate to="/businesses" replace/>;if(section==='dashboard')return <Dashboard key={business.id} state={state} setState={setState} business={business}/>;if(section==='profile')return <BusinessProfile key={business.id} state={state} setState={setState} business={business}/>;if(section==='update-data')return <UpdateData key={business.id} state={state} setState={setState} business={business}/>;if(section==='findings')return <Findings key={business.id} state={state} business={business}/>;if(section==='recommendations')return <Recommendations key={business.id} state={state} setState={setState} business={business}/>;if(section==='report')return <Report key={business.id} state={state} business={business}/>;const kind=section==='financial'?'financial':section==='customers'?'customers':section==='products'?'products':section==='trends'?'trends':section==='market'?'market':null;if(kind==='market')return <AnalysisPage key={business.id} kind={kind} state={state} business={business}/>;if(kind)return <SeriesPage key={business.id} kind={kind} business={business}/>;return <Navigate to={`/business/${business.id}/dashboard`} replace/>;}
 
 function App(){
   const [state,setState,auth]=useAppState();const navigate=useNavigate();const location=useLocation();

@@ -93,3 +93,62 @@ export function endOfMonth(period) {
   const day = new Date(Number(m[1]), Number(m[2]), 0).getDate();
   return `${period}-${String(day).padStart(2, '0')}`;
 }
+
+// ---------- Added for the Financial / Customers / Products / Trends pages ----------
+
+export function hasProductSeries(series) {
+  return Array.isArray(series?.products) && series.products.length > 0;
+}
+
+// Rows for the customer chart and table, oldest first. Nulls stay null.
+export function customerChartRows(series) {
+  if (!hasCustomerSeries(series)) return [];
+  return series.customer_monthly
+    .filter((r) => r && typeof r.period === 'string')
+    .map((r) => ({
+      period: r.period,
+      month: periodLabel(r.period),
+      activeCustomers: num(r.active_customers),
+      spend: num(r.spend),
+      transactions: num(r.transactions),
+    }))
+    .sort((a, b) => (a.period < b.period ? -1 : a.period > b.period ? 1 : 0));
+}
+
+// Product rows for the table, best revenue rank first. Rows without a rank go last.
+export function productRows(series) {
+  if (!hasProductSeries(series)) return [];
+  return series.products
+    .filter((r) => r && typeof r === 'object')
+    .map((r) => ({
+      id: String(r.product_id ?? r.product_name ?? ''),
+      name: r.product_name ?? r.product_id ?? 'Unnamed',
+      monthsActive: num(r.months_active),
+      revenue: num(r.revenue),
+      unitsSold: num(r.units_sold),
+      cost: num(r.cost),
+      grossProfit: num(r.gross_profit),
+      grossMarginPct: num(r.gross_margin_pct),
+      revenueSharePct: num(r.revenue_share_pct),
+      rank: num(r.rank_by_revenue),
+    }))
+    .sort((a, b) => {
+      if (a.rank === null && b.rank === null) return (b.revenue ?? -Infinity) - (a.revenue ?? -Infinity);
+      if (a.rank === null) return 1;
+      if (b.rank === null) return -1;
+      return a.rank - b.rank;
+    });
+}
+
+// Month-over-month change for `key`. A change is only reported when this month and the previous
+// row both have known values; the percent is also null when the previous value is 0 (undefined).
+// Rows must already be sorted oldest first (financialChartRows / customerChartRows do that).
+export function monthOverMonth(rows, key) {
+  return rows.map((r, i) => {
+    const value = num(r?.[key]);
+    const previous = i > 0 ? num(rows[i - 1]?.[key]) : null;
+    const change = value !== null && previous !== null ? value - previous : null;
+    const percent = change !== null && previous !== 0 ? (change / Math.abs(previous)) * 100 : null;
+    return { period: r.period, month: r.month, value, previous, change, percent };
+  });
+}
