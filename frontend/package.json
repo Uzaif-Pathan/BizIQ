@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "npm run test:node && npm run test:unit",
     "test:node": "node --test tests/series.test.js tests/series-pages.test.js",
-    "test:unit": "vitest run --dir src"
+    "test:unit": "vitest run tests/api.test.ts tests/businessState.test.js tests/format.test.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
