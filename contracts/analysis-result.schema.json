@@ -1,9 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://biziq.local/contracts/analysis-result.schema.json",
-  "title": "AnalysisResult",
-  "description": "Standard BizIQ analysis response shared by the frontend, analytics engine and API. Money is INR. Percentages are numbers in percent. Metrics that cannot be calculated are null, never 0.",
+  "$id": "biziq/analysis-result.schema.json",
+  "title": "BizIQ analysis result (API contract)",
+  "description": "The result the API returns and the frontend displays. It mirrors backend/app/schemas/analysis.py (AnalysisResult). Money in INR as numbers, percentages as percent numbers (23.29 = 23.29%), missing = null, never 0. The analytics engine's richer native format is described by engine-result.schema.json; analytics_engine.api_adapter converts it to this one.",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "analysis_id",
     "business_id",
@@ -14,110 +15,413 @@
     "evidence_level",
     "benchmark_status"
   ],
-  "additionalProperties": false,
   "properties": {
-    "analysis_id": { "type": "string", "minLength": 1 },
-    "business_id": { "type": "string", "minLength": 1 },
-    "status": { "enum": ["pending", "completed", "failed", "partial"] },
-    "metrics": { "$ref": "#/$defs/Metrics" },
-    "findings": { "type": "array", "items": { "$ref": "#/$defs/Finding" } },
-    "recommendations": { "type": "array", "items": { "$ref": "#/$defs/Recommendation" } },
-    "evidence_level": { "enum": ["insufficient", "low", "medium", "high"] },
-    "benchmark_status": { "enum": ["available", "partial", "unavailable"] },
-    "method_version": { "type": ["string", "null"] },
-    "limitations": { "type": "array", "items": { "type": "string" } },
-    "error_message": { "type": ["string", "null"] },
-    "created_at": { "type": ["string", "null"], "format": "date-time" },
-    "completed_at": { "type": ["string", "null"], "format": "date-time" },
-    "error": {
-      "type": ["object", "null"],
-      "properties": {
-        "code": { "type": "string" },
-        "message": { "type": "string" }
+    "analysis_id": {
+      "type": "string"
+    },
+    "business_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ]
+    },
+    "metrics": {
+      "$ref": "#/$defs/Metrics"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Finding"
       }
     },
-    "validation": {
-      "type": "object",
-      "required": ["errors", "warnings"],
-      "properties": {
-        "errors": { "type": "array", "items": { "type": "string" } },
-        "warnings": { "type": "array", "items": { "type": "string" } }
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Recommendation"
       }
+    },
+    "evidence_level": {
+      "enum": [
+        "insufficient",
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "benchmark_status": {
+      "enum": [
+        "available",
+        "partial",
+        "unavailable"
+      ]
+    },
+    "method_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Plain-language reasons the result is limited (missing data, skipped models, no benchmark)."
+    },
+    "error_message": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "completed_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "engine_status": {
+      "enum": [
+        "completed",
+        "partial",
+        "failed"
+      ],
+      "description": "Raw engine status. 'partial' means some input was rejected; status is still 'completed'."
+    },
+    "error_code": {
+      "type": "string"
+    },
+    "metric_details": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/MetricDetail"
+      },
+      "description": "Unit, period, formula and (for null metrics) the reason, per metric key."
     },
     "health_score": {
-      "type": ["object", "null"],
-      "properties": {
-        "score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
-        "components": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["name", "weight", "basis"],
-            "properties": {
-              "name": { "type": "string" },
-              "weight": { "type": ["number", "null"] },
-              "value": { "type": ["number", "null"] },
-              "direction": { "enum": ["raises", "lowers", "neutral", null] },
-              "basis": { "enum": ["measured", "benchmark", "rule"] },
-              "base_weight": { "type": "number" },
-              "points": { "type": ["number", "null"] },
-              "effect_points": { "type": ["number", "null"] },
-              "metric": { "type": "string" },
-              "explanation": { "type": "string" },
-              "benchmark": { "type": "object" }
-            }
-          }
-        },
-        "unavailable_components": { "type": "array", "items": { "type": "string" } },
-        "limitations": { "type": "array", "items": { "type": "string" } },
-        "band": { "enum": ["strong", "moderate", "weak", "at risk", null] },
-        "coverage_pct": { "type": "number" },
-        "raised_by": { "type": "array", "items": { "type": "string" } },
-        "lowered_by": { "type": "array", "items": { "type": "string" } },
-        "disclaimer": { "type": "string" }
-      }
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Transparent rule-based score; see engine-result.schema.json."
     },
     "models": {
       "type": "object",
+      "description": "Segmentation / forecast status and evaluation; see engine-result.schema.json."
+    },
+    "validation": {
+      "type": "object",
+      "description": "Input validation errors, warnings and per-dataset row counts."
+    },
+    "data_coverage": {
+      "type": "object"
+    },
+    "series": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Chart-ready rows. Only months/products that exist in the data are listed; missing values are null, never 0. No per-customer rows.",
       "properties": {
-        "segmentation": { "$ref": "#/$defs/model" },
-        "forecast": { "$ref": "#/$defs/model" }
+        "financial_monthly": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "period"
+            ],
+            "properties": {
+              "period": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+              },
+              "revenue": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "expenses": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "expenses_complete": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "profit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "Only when expenses are marked complete for that month."
+              },
+              "needs_review": {
+                "type": "boolean"
+              },
+              "listed_expenses_exceed_revenue": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "customer_monthly": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "period"
+            ],
+            "properties": {
+              "period": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+              },
+              "active_customers": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "spend": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "transactions": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "product_id"
+            ],
+            "properties": {
+              "product_id": {
+                "type": "string"
+              },
+              "product_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "months_active": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "revenue": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "units_sold": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cost": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "gross_profit": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "gross_margin_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "revenue_share_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "rank_by_revenue": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
       }
     }
   },
-  "if": { "properties": { "status": { "const": "failed" } }, "required": ["status"] },
+  "if": {
+    "properties": {
+      "status": {
+        "const": "failed"
+      }
+    },
+    "required": [
+      "status"
+    ]
+  },
   "then": {
-    "required": ["error_message"],
-    "properties": { "error_message": { "type": "string", "minLength": 1 } }
+    "required": [
+      "error_message"
+    ],
+    "properties": {
+      "error_message": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
   },
   "$defs": {
     "Metrics": {
       "type": "object",
       "properties": {
-        "revenue": { "type": ["number", "null"] },
-        "expenses": { "type": ["number", "null"] },
-        "profit": { "type": ["number", "null"] },
-        "profit_margin": { "type": ["number", "null"] }
+        "revenue": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "expenses": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "profit": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "profit_margin": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
       },
-      "additionalProperties": { "type": ["number", "null"] }
+      "additionalProperties": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "MetricDetail": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string"
+        },
+        "formula": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
     },
     "Finding": {
       "type": "object",
-      "required": ["finding_id", "category", "title", "description"],
       "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "category",
+        "title",
+        "description"
+      ],
       "properties": {
-        "finding_id": { "type": "string", "minLength": 1 },
-        "category": { "enum": ["financial", "customer", "product", "trend", "benchmark", "data_quality"] },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "metric_name": { "type": ["string", "null"] },
-        "metric_value": { "type": ["number", "null"] },
-        "severity": { "enum": ["info", "warning", "critical"], "default": "info" },
-        "evidence": { "type": "array", "items": { "type": "string" } }
+        "finding_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "financial",
+            "customer",
+            "product",
+            "trend",
+            "benchmark",
+            "data_quality"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "metric_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "metric_value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ],
+          "default": "info"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "Recommendation": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "recommendation_id",
         "title",
@@ -127,42 +431,72 @@
         "priority",
         "supporting_finding_ids"
       ],
-      "additionalProperties": false,
       "properties": {
-        "recommendation_id": { "type": "string", "minLength": 1 },
-        "title": { "type": "string" },
-        "issue": { "type": "string" },
-        "reason": { "type": "string" },
-        "action": { "type": "string" },
-        "priority": { "enum": ["high", "medium", "low"] },
+        "recommendation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "issue": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "priority": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
         "supporting_finding_ids": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string" }
-        },
-        "evidence": { "type": "array", "items": { "type": "string" } },
-        "kpi": { "type": ["string", "null"] },
-        "supporting_metric": { "type": ["string", "null"] },
-        "rationale": { "type": "string" },
-        "rule_id": { "type": "string" },
-        "expected_direction": {
-          "type": ["object", "null"],
-          "properties": {
-            "metric": { "type": "string" },
-            "direction": { "enum": ["increase", "decrease"] }
+          "items": {
+            "type": "string"
           }
         },
-        "caveat": { "type": "string" }
-      }
-    },
-    "model": {
-      "type": "object",
-      "required": ["status"],
-      "properties": {
-        "status": { "enum": ["ok", "skipped_insufficient_data", "not_applicable", "failed"] },
-        "mae": { "type": ["number", "null"] },
-        "rmse": { "type": ["number", "null"] },
-        "details": { "type": "object" }
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "kpi": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expected_direction": {
+          "enum": [
+            "increase",
+            "decrease",
+            "maintain",
+            null
+          ]
+        },
+        "supporting_metric": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rule_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "caveat": {
+          "type": "string"
+        }
       }
     }
   }

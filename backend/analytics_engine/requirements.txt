@@ -1,0 +1,5 @@
+# Runtime dependencies of the analytics engine (tested with the versions shown).
+# Person 3: add these three lines to backend/requirements.txt. This file is a copy for reference only.
+pandas>=2.2,<4        # tested with 3.0.5
+numpy>=1.26,<3        # tested with 2.5.3
+scikit-learn>=1.4,<2  # tested with 1.9.1 (K-Means segmentation only)

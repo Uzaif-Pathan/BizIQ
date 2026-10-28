@@ -125,7 +125,7 @@ def test_sample_datasets(scenario, expected):
 
 def test_model_object_matches_contract_schema():
     jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads((SAMPLES.parents[1] / "contracts" / "analysis-result.schema.json").read_text())
+    schema = json.loads((SAMPLES.parents[1] / "contracts" / "engine-result.schema.json").read_text())
     ref = {"$ref": "#/$defs/model", "$defs": schema["$defs"]}
     for m in (segment_customers(clean(make_customers(THREE))), segment_customers(None)):
         jsonschema.validate(m, ref)

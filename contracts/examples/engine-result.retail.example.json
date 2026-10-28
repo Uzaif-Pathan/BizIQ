@@ -1,0 +1,1003 @@
+{
+  "analysis_id": "sample-analysis-retail-001",
+  "business_id": "11111111-1111-4111-8111-111111111111",
+  "status": "completed",
+  "evidence_level": "high",
+  "evidence_notes": [
+    "24 months of revenue data with clean financials and supporting customer/product data."
+  ],
+  "benchmark_status": "unavailable",
+  "error": null,
+  "validation": {
+    "errors": [],
+    "warnings": [],
+    "datasets": {
+      "financials": {
+        "is_valid": true,
+        "is_usable": true,
+        "rows_in": 24,
+        "rows_out": 24
+      },
+      "customers": {
+        "is_valid": true,
+        "is_usable": true,
+        "rows_in": 1022,
+        "rows_out": 1022
+      },
+      "products": {
+        "is_valid": true,
+        "is_usable": true,
+        "rows_in": 168,
+        "rows_out": 168
+      }
+    }
+  },
+  "metrics": {
+    "revenue": {
+      "value": 3726825.0,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "sum of monthly revenue in window"
+    },
+    "months_of_data": {
+      "value": 12.0,
+      "unit": "months",
+      "period": "2025-01/2025-12",
+      "formula": "count of months with a revenue value in window"
+    },
+    "listed_expenses": {
+      "value": 2916098.0,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "sum of expenses that were listed in window"
+    },
+    "expenses": {
+      "value": 2916098.0,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "sum of expenses (expense list marked complete)"
+    },
+    "revenue_minus_listed_expenses": {
+      "value": 810727.0,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "revenue - listed expenses, over months having both"
+    },
+    "profit": {
+      "value": 810727.0,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "revenue - expenses (expense list complete)"
+    },
+    "profit_margin_pct": {
+      "value": 21.75,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "profit / revenue * 100"
+    },
+    "expense_ratio_pct": {
+      "value": 78.25,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "expenses / revenue * 100"
+    },
+    "revenue_mom_pct": {
+      "value": 10.82,
+      "unit": "percent",
+      "period": "2025-11/2025-12",
+      "formula": "(revenue 2025-12 - revenue previous month) / revenue previous month * 100"
+    },
+    "revenue_yoy_pct": {
+      "value": 13.84,
+      "unit": "percent",
+      "period": "2024-12/2025-12",
+      "formula": "(revenue 2025-12 - revenue same month last year) / revenue same month last year * 100"
+    },
+    "expenses_mom_pct": {
+      "value": 10.83,
+      "unit": "percent",
+      "period": "2025-11/2025-12",
+      "formula": "(expenses 2025-12 - expenses previous month) / expenses previous month * 100"
+    },
+    "expenses_yoy_pct": {
+      "value": 15.14,
+      "unit": "percent",
+      "period": "2024-12/2025-12",
+      "formula": "(expenses 2025-12 - expenses same month last year) / expenses same month last year * 100"
+    },
+    "revenue_12m_growth_pct": {
+      "value": 15.61,
+      "unit": "percent",
+      "period": "2024-01/2025-12",
+      "formula": "(revenue of latest 12 months - revenue of the 12 months before) / the latter * 100"
+    },
+    "revenue_trend_pct_per_month": {
+      "value": -1.28,
+      "unit": "percent_per_month",
+      "period": "2025-01/2025-12",
+      "formula": "least-squares slope of monthly values / mean * 100 (months flagged for review excluded)"
+    },
+    "listed_expenses_trend_pct_per_month": {
+      "value": -1.17,
+      "unit": "percent_per_month",
+      "period": "2025-01/2025-12",
+      "formula": "least-squares slope of monthly values / mean * 100 (months flagged for review excluded)"
+    },
+    "active_customers": {
+      "value": 122.0,
+      "unit": "customers",
+      "period": "2025-01/2025-12",
+      "formula": "distinct customers with a row in window"
+    },
+    "total_customer_spend": {
+      "value": 3354142.45,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "sum of amount_spent in window"
+    },
+    "avg_spend_per_customer": {
+      "value": 27492.97,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "total_customer_spend / active_customers"
+    },
+    "total_transactions": {
+      "value": 8450.0,
+      "unit": "count",
+      "period": "2025-01/2025-12",
+      "formula": "sum of transactions in window"
+    },
+    "avg_transaction_value": {
+      "value": 396.94,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "amount_spent / transactions over rows having both"
+    },
+    "repeat_customer_rate_pct": {
+      "value": 62.3,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "customers active in >= 2 different months / active customers * 100"
+    },
+    "avg_monthly_retention_pct": {
+      "value": 62.62,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "average over consecutive month pairs of customers present in both / customers in the first month * 100",
+      "note": "based on 11 month pairs"
+    },
+    "returning_customers_latest_month_pct": {
+      "value": 97.5,
+      "unit": "percent",
+      "period": "2025-12",
+      "formula": "latest month's customers who appeared in an earlier month / latest month's customers * 100",
+      "note": "history in the data: 24 month(s); 'new' means first seen in the data provided"
+    },
+    "top_customer_share_pct": {
+      "value": 4.36,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "largest customer's spend / total spend * 100"
+    },
+    "top_5_customers_share_pct": {
+      "value": 17.41,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "five largest customers' spend / total spend * 100"
+    },
+    "top_10pct_customers_share_pct": {
+      "value": 40.66,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "spend of the largest 10% of customers (13 of 122) / total spend * 100"
+    },
+    "customer_data_coverage_pct": {
+      "value": 90.0,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "total_customer_spend / financial revenue (same window) * 100"
+    },
+    "active_customers_trend_pct_per_month": {
+      "value": 0.17,
+      "unit": "percent_per_month",
+      "period": "2025-01/2025-12",
+      "formula": "least-squares slope of monthly active customers / mean * 100"
+    },
+    "product_count": {
+      "value": 7.0,
+      "unit": "products",
+      "period": "2025-01/2025-12",
+      "formula": "distinct products with revenue in window"
+    },
+    "total_product_revenue": {
+      "value": 3726824.97,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "sum of product revenue in window"
+    },
+    "top_product_share_pct": {
+      "value": 27.29,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "largest product's revenue / total product revenue * 100"
+    },
+    "top_3_products_share_pct": {
+      "value": 67.66,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "three largest products' revenue / total product revenue * 100"
+    },
+    "gross_profit": {
+      "value": 706062.56,
+      "unit": "INR",
+      "period": "2025-01/2025-12",
+      "formula": "product revenue - product cost"
+    },
+    "gross_margin_pct": {
+      "value": 18.95,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "(product revenue - product cost) / product revenue * 100"
+    },
+    "products_with_negative_margin": {
+      "value": 0.0,
+      "unit": "products",
+      "period": "2025-01/2025-12",
+      "formula": "products whose cost exceeds revenue (cost known)"
+    },
+    "product_data_coverage_pct": {
+      "value": 100.0,
+      "unit": "percent",
+      "period": "2025-01/2025-12",
+      "formula": "total product revenue / financial revenue (same window) * 100"
+    }
+  },
+  "findings": [
+    {
+      "id": "FIN-MARGIN",
+      "type": "profit_margin_level",
+      "metric": "profit_margin_pct",
+      "value": 21.75,
+      "comparison": "generic rule of thumb: <0% loss, <5% thin, <10% modest (not an industry benchmark)",
+      "evidence": "Profit margin was 21.8% over 2025-01/2025-12: profit margin is healthy by the generic rule of thumb.",
+      "severity": "info"
+    },
+    {
+      "id": "FIN-REVTREND",
+      "type": "revenue_trend_unclear",
+      "metric": "revenue_trend_pct_per_month",
+      "value": -1.28,
+      "comparison": null,
+      "evidence": "Monthly revenue has no consistent up or down pattern over 2025-01/2025-12 (straight-line fit R\u00b2 0.201); month-to-month swings dominate.",
+      "severity": "info"
+    },
+    {
+      "id": "FIN-GROWTH12",
+      "type": "revenue_growth_12m",
+      "metric": "revenue_12m_growth_pct",
+      "value": 15.61,
+      "comparison": null,
+      "evidence": "Revenue over the latest 12 months is +15.6% versus the 12 months before.",
+      "severity": "info"
+    },
+    {
+      "id": "CUS-REPEAT",
+      "type": "repeat_customers",
+      "metric": "repeat_customer_rate_pct",
+      "value": 62.3,
+      "comparison": "generic rule of thumb: below 25% is weak (not an industry benchmark)",
+      "evidence": "62% of customers bought in two or more different months (acceptable repeat business by the generic rule).",
+      "severity": "info"
+    },
+    {
+      "id": "CUS-RETENTION",
+      "type": "customer_retention",
+      "metric": "avg_monthly_retention_pct",
+      "value": 62.62,
+      "comparison": "generic rule of thumb: below 40% is low",
+      "evidence": "On average 63% of a month's customers came back the next month.",
+      "severity": "info"
+    },
+    {
+      "id": "CUS-CONC",
+      "type": "customer_concentration",
+      "metric": "top_customer_share_pct",
+      "value": 4.36,
+      "comparison": "generic rule of thumb: largest customer >= 15% or top 10% >= 50% signals dependence",
+      "evidence": "Spend concentration: largest customer 4% of spend, top 5 customers 17%, top 10% of customers 41% (122 customers).",
+      "severity": "info"
+    },
+    {
+      "id": "PRD-CONC",
+      "type": "product_concentration",
+      "metric": "top_product_share_pct",
+      "value": 27.29,
+      "comparison": "generic rule of thumb: one product >= 40% of revenue is a dependency",
+      "evidence": "'Rice (5kg)' brings 27% of product revenue; the top 3 bring 68%.",
+      "severity": "info"
+    },
+    {
+      "id": "PRD-DECLINE-P06",
+      "type": "product_revenue_declining",
+      "metric": "revenue_trend_pct_per_month",
+      "value": -3.78,
+      "comparison": null,
+      "evidence": "Revenue of 'Stationery' is falling (-3.8% per month, fit R\u00b2 0.646); it is 4% of product revenue.",
+      "severity": "low"
+    },
+    {
+      "id": "PRD-DECLINE-P04",
+      "type": "product_revenue_declining",
+      "metric": "revenue_trend_pct_per_month",
+      "value": -3.22,
+      "comparison": null,
+      "evidence": "Revenue of 'Soft drinks' is falling (-3.2% per month, fit R\u00b2 0.647); it is 11% of product revenue.",
+      "severity": "medium"
+    },
+    {
+      "id": "PRD-GAINING-P02",
+      "type": "product_gaining_share",
+      "metric": "share_trend_pp_per_month",
+      "value": 0.1531,
+      "comparison": null,
+      "evidence": "'Cooking oil (1L)' is gaining share of revenue (+0.15 percentage points per month).",
+      "severity": "info"
+    },
+    {
+      "id": "PRD-GAINING-P07",
+      "type": "product_gaining_share",
+      "metric": "share_trend_pp_per_month",
+      "value": 0.1105,
+      "comparison": null,
+      "evidence": "'Frozen foods' is gaining share of revenue (+0.11 percentage points per month).",
+      "severity": "info"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "REC-PRODUCT-DECLINE",
+      "rule_id": "PRODUCT-DECLINE",
+      "finding_ids": [
+        "PRD-DECLINE-P04",
+        "PRD-DECLINE-P06"
+      ],
+      "issue": "Some products are selling less or losing share.",
+      "supporting_metric": "revenue_trend_pct_per_month",
+      "evidence": "Revenue of 'Soft drinks' is falling (-3.2% per month, fit R\u00b2 0.647); it is 11% of product revenue. Revenue of 'Stationery' is falling (-3.8% per month, fit R\u00b2 0.646); it is 4% of product revenue.",
+      "action": "For each product named in the evidence, check price, stock availability and local demand, and decide whether to promote it, reprice it or phase it out.",
+      "priority": "medium",
+      "kpi": "Monthly revenue of the named products",
+      "expected_direction": {
+        "metric": "revenue_trend_pct_per_month",
+        "direction": "increase"
+      },
+      "rationale": "Generated by rule PRODUCT-DECLINE because PRD-DECLINE-P04, PRD-DECLINE-P06 were reported (highest severity: medium). The wording is tailored to a retail business. This is a suggestion to investigate and act on, not a guaranteed result."
+    }
+  ],
+  "health_score": {
+    "score": 80.8,
+    "band": "strong",
+    "components": [
+      {
+        "name": "profitability",
+        "base_weight": 25,
+        "points": 87.6,
+        "value": 21.75,
+        "metric": "profit_margin_pct",
+        "basis": "measured",
+        "explanation": "Profit margin 21.8% (generic score curve; no benchmark supplied).",
+        "weight": 25.0,
+        "effect_points": 9.4,
+        "direction": "raises"
+      },
+      {
+        "name": "growth",
+        "base_weight": 20,
+        "points": 77.5,
+        "value": 15.61,
+        "metric": "revenue_12m_growth_pct",
+        "basis": "measured",
+        "explanation": "12-month revenue growth +15.6%.",
+        "weight": 20.0,
+        "effect_points": 5.5,
+        "direction": "raises"
+      },
+      {
+        "name": "revenue_stability",
+        "base_weight": 10,
+        "points": 96.5,
+        "value": 11.76,
+        "metric": "revenue_volatility_cv_pct",
+        "basis": "rule",
+        "explanation": "Monthly revenue varies by 12% around its average (lower is steadier).",
+        "weight": 10.0,
+        "effect_points": 4.7,
+        "direction": "raises"
+      },
+      {
+        "name": "customer_loyalty",
+        "base_weight": 10,
+        "points": 87.1,
+        "value": 62.3,
+        "metric": "repeat_customer_rate_pct",
+        "basis": "measured",
+        "explanation": "62% repeat customers, 63% monthly retention.",
+        "weight": 10.0,
+        "effect_points": 3.7,
+        "direction": "raises"
+      },
+      {
+        "name": "customer_concentration",
+        "base_weight": 10,
+        "points": 84.0,
+        "value": 4.36,
+        "metric": "top_customer_share_pct",
+        "basis": "rule",
+        "explanation": "Largest customer 4% of spend, top 10% of customers 41% (lower is safer).",
+        "weight": 10.0,
+        "effect_points": 3.4,
+        "direction": "raises"
+      },
+      {
+        "name": "product_concentration",
+        "base_weight": 5,
+        "points": 95.4,
+        "value": 27.29,
+        "metric": "top_product_share_pct",
+        "basis": "rule",
+        "explanation": "Best-selling product is 27% of product revenue (lower is safer).",
+        "weight": 5.0,
+        "effect_points": 2.3,
+        "direction": "raises"
+      },
+      {
+        "name": "cost_control",
+        "base_weight": 15,
+        "points": 58.5,
+        "value": 1.3,
+        "metric": "expenses_yoy_pct - revenue_yoy_pct",
+        "basis": "measured",
+        "explanation": "Expenses changed +15.1% vs revenue +13.8% year on year (gap +1.3 percentage points).",
+        "weight": 15.0,
+        "effect_points": 1.3,
+        "direction": "neutral"
+      },
+      {
+        "name": "product_margin",
+        "base_weight": 5,
+        "points": 62.4,
+        "value": 18.95,
+        "metric": "gross_margin_pct",
+        "basis": "measured",
+        "explanation": "Gross margin 18.9%.",
+        "weight": 5.0,
+        "effect_points": 0.6,
+        "direction": "neutral"
+      }
+    ],
+    "unavailable_components": [],
+    "limitations": [
+      "No industry benchmark was used; components rest on the business's own figures and generic rules of thumb."
+    ],
+    "coverage_pct": 100,
+    "raised_by": [
+      "profitability",
+      "growth",
+      "revenue_stability"
+    ],
+    "lowered_by": [],
+    "disclaimer": "This score summarises the available indicators with fixed, documented rules. It is not a probability of business success."
+  },
+  "models": {
+    "segmentation": {
+      "status": "ok",
+      "mae": null,
+      "rmse": null,
+      "details": {
+        "k": 2,
+        "segments": [
+          {
+            "name": "Loyal high-value",
+            "customers": 35,
+            "customers_share_pct": 28.7,
+            "spend_share_pct": 88.4,
+            "avg_recency_months": 0.2,
+            "avg_active_months": 10.3,
+            "avg_spend": 84756.53
+          },
+          {
+            "name": "Lapsed / inactive",
+            "customers": 87,
+            "customers_share_pct": 71.3,
+            "spend_share_pct": 11.6,
+            "avg_recency_months": 4.0,
+            "avg_active_months": 1.7,
+            "avg_spend": 4455.91
+          }
+        ],
+        "stability_ari": 1.0,
+        "window": "2025-01/2025-12",
+        "n_customers": 122,
+        "months_of_data": 12,
+        "features": [
+          "recency_months",
+          "frequency_months",
+          "log_spend"
+        ],
+        "scaling": "StandardScaler (z-score); spend log-transformed",
+        "k_scores": {
+          "2": 0.639,
+          "3": 0.606,
+          "4": 0.522,
+          "5": 0.488
+        },
+        "silhouette": 0.639
+      }
+    },
+    "forecast": {
+      "status": "ok",
+      "mae": 16451.67,
+      "rmse": 20638.21,
+      "details": {
+        "forecast": [
+          {
+            "period": "2026-01",
+            "value": 314857.0,
+            "low": 294219.0,
+            "high": 335495.0
+          },
+          {
+            "period": "2026-02",
+            "value": 314857.0,
+            "low": 294219.0,
+            "high": 335495.0
+          },
+          {
+            "period": "2026-03",
+            "value": 314857.0,
+            "low": 294219.0,
+            "high": 335495.0
+          }
+        ],
+        "horizon_months": 3,
+        "caveat": "No candidate predicted the held-out months better than repeating the last month, so this is effectively a flat expectation rather than a detected trend.",
+        "interval_note": "low/high = forecast -/+ the holdout RMSE (a typical error, not a statistical confidence interval).",
+        "target": "revenue",
+        "months_with_revenue": 24,
+        "train_months": 21,
+        "holdout_months": 3,
+        "model_name": "naive",
+        "candidates": [
+          {
+            "name": "naive",
+            "mae": 16451.67,
+            "rmse": 20638.21,
+            "mape_pct": 5.59
+          },
+          {
+            "name": "moving_average_3",
+            "mae": 18706.11,
+            "rmse": 20470.4,
+            "mape_pct": 6.52
+          },
+          {
+            "name": "linear",
+            "mae": 34668.7,
+            "rmse": 39082.36,
+            "mape_pct": 12.52
+          }
+        ],
+        "mape_pct": 5.6,
+        "beats_naive": false
+      }
+    }
+  },
+  "data_coverage": {
+    "financials": {
+      "months_with_revenue": 24,
+      "first_period": "2024-01",
+      "last_period": "2025-12",
+      "window_first": "2025-01",
+      "window_last": "2025-12",
+      "window_months": 12,
+      "missing_periods": [],
+      "expenses_complete": true
+    },
+    "customers": {
+      "months": 12,
+      "customers": 122,
+      "window_first": "2025-01",
+      "window_last": "2025-12",
+      "rows_flagged_for_review": 0
+    },
+    "products": {
+      "products": 7,
+      "months": 12,
+      "window_first": "2025-01",
+      "window_last": "2025-12",
+      "rows_flagged_for_review": 0
+    }
+  },
+  "series": {
+    "financial_monthly": [
+      {
+        "period": "2024-01",
+        "revenue": 253047.0,
+        "expenses": 191219.0,
+        "expenses_complete": true,
+        "profit": 61828.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-02",
+        "revenue": 280139.0,
+        "expenses": 224674.0,
+        "expenses_complete": true,
+        "profit": 55465.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-03",
+        "revenue": 266719.0,
+        "expenses": 199914.0,
+        "expenses_complete": true,
+        "profit": 66805.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-04",
+        "revenue": 299498.0,
+        "expenses": 231392.0,
+        "expenses_complete": true,
+        "profit": 68106.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-05",
+        "revenue": 296082.0,
+        "expenses": 225034.0,
+        "expenses_complete": true,
+        "profit": 71048.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-06",
+        "revenue": 295301.0,
+        "expenses": 235710.0,
+        "expenses_complete": true,
+        "profit": 59591.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-07",
+        "revenue": 269258.0,
+        "expenses": 217124.0,
+        "expenses_complete": true,
+        "profit": 52134.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-08",
+        "revenue": 256090.0,
+        "expenses": 194601.0,
+        "expenses_complete": true,
+        "profit": 61489.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-09",
+        "revenue": 242835.0,
+        "expenses": 183962.0,
+        "expenses_complete": true,
+        "profit": 58873.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-10",
+        "revenue": 244896.0,
+        "expenses": 190733.0,
+        "expenses_complete": true,
+        "profit": 54163.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-11",
+        "revenue": 243270.0,
+        "expenses": 185875.0,
+        "expenses_complete": true,
+        "profit": 57395.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2024-12",
+        "revenue": 276568.0,
+        "expenses": 214723.0,
+        "expenses_complete": true,
+        "profit": 61845.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-01",
+        "revenue": 283531.0,
+        "expenses": 218818.0,
+        "expenses_complete": true,
+        "profit": 64713.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-02",
+        "revenue": 320513.0,
+        "expenses": 252741.0,
+        "expenses_complete": true,
+        "profit": 67772.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-03",
+        "revenue": 339328.0,
+        "expenses": 268097.0,
+        "expenses_complete": true,
+        "profit": 71231.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-04",
+        "revenue": 373286.0,
+        "expenses": 287613.0,
+        "expenses_complete": true,
+        "profit": 85673.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-05",
+        "revenue": 334872.0,
+        "expenses": 254823.0,
+        "expenses_complete": true,
+        "profit": 80049.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-06",
+        "revenue": 337278.0,
+        "expenses": 271987.0,
+        "expenses_complete": true,
+        "profit": 65291.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-07",
+        "revenue": 308465.0,
+        "expenses": 234538.0,
+        "expenses_complete": true,
+        "profit": 73927.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-08",
+        "revenue": 280509.0,
+        "expenses": 223068.0,
+        "expenses_complete": true,
+        "profit": 57441.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-09",
+        "revenue": 284342.0,
+        "expenses": 225401.0,
+        "expenses_complete": true,
+        "profit": 58941.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-10",
+        "revenue": 265725.0,
+        "expenses": 208709.0,
+        "expenses_complete": true,
+        "profit": 57016.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-11",
+        "revenue": 284119.0,
+        "expenses": 223067.0,
+        "expenses_complete": true,
+        "profit": 61052.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      },
+      {
+        "period": "2025-12",
+        "revenue": 314857.0,
+        "expenses": 247236.0,
+        "expenses_complete": true,
+        "profit": 67621.0,
+        "needs_review": false,
+        "listed_expenses_exceed_revenue": false
+      }
+    ],
+    "customer_monthly": [
+      {
+        "period": "2025-01",
+        "active_customers": 41,
+        "spend": 255177.86,
+        "transactions": 621.0
+      },
+      {
+        "period": "2025-02",
+        "active_customers": 43,
+        "spend": 288461.72,
+        "transactions": 708.0
+      },
+      {
+        "period": "2025-03",
+        "active_customers": 41,
+        "spend": 305395.19,
+        "transactions": 737.0
+      },
+      {
+        "period": "2025-04",
+        "active_customers": 49,
+        "spend": 335957.44,
+        "transactions": 899.0
+      },
+      {
+        "period": "2025-05",
+        "active_customers": 44,
+        "spend": 301384.77,
+        "transactions": 776.0
+      },
+      {
+        "period": "2025-06",
+        "active_customers": 36,
+        "spend": 303550.18,
+        "transactions": 780.0
+      },
+      {
+        "period": "2025-07",
+        "active_customers": 40,
+        "spend": 277618.49,
+        "transactions": 665.0
+      },
+      {
+        "period": "2025-08",
+        "active_customers": 41,
+        "spend": 252458.08,
+        "transactions": 636.0
+      },
+      {
+        "period": "2025-09",
+        "active_customers": 44,
+        "spend": 255907.82,
+        "transactions": 641.0
+      },
+      {
+        "period": "2025-10",
+        "active_customers": 46,
+        "spend": 239152.51,
+        "transactions": 623.0
+      },
+      {
+        "period": "2025-11",
+        "active_customers": 46,
+        "spend": 255707.11,
+        "transactions": 695.0
+      },
+      {
+        "period": "2025-12",
+        "active_customers": 40,
+        "spend": 283371.28,
+        "transactions": 669.0
+      }
+    ],
+    "products": [
+      {
+        "product_id": "P01",
+        "product_name": "Rice (5kg)",
+        "months_active": 12,
+        "revenue": 1016988.56,
+        "units_sold": 3181.0,
+        "cost": 894949.92,
+        "gross_profit": 122038.64,
+        "gross_margin_pct": 12.0,
+        "revenue_share_pct": 27.29,
+        "rank_by_revenue": 1
+      },
+      {
+        "product_id": "P02",
+        "product_name": "Cooking oil (1L)",
+        "months_active": 12,
+        "revenue": 787949.98,
+        "units_sold": 5254.0,
+        "cost": 709154.98,
+        "gross_profit": 78795.0,
+        "gross_margin_pct": 10.0,
+        "revenue_share_pct": 21.14,
+        "rank_by_revenue": 2
+      },
+      {
+        "product_id": "P03",
+        "product_name": "Snacks",
+        "months_active": 12,
+        "revenue": 716516.62,
+        "units_sold": 17912.0,
+        "cost": 501561.63,
+        "gross_profit": 214954.99,
+        "gross_margin_pct": 30.0,
+        "revenue_share_pct": 19.23,
+        "rank_by_revenue": 3
+      },
+      {
+        "product_id": "P05",
+        "product_name": "Toiletries",
+        "months_active": 12,
+        "revenue": 437487.18,
+        "units_sold": 3648.0,
+        "cost": 328115.38,
+        "gross_profit": 109371.8,
+        "gross_margin_pct": 25.0,
+        "revenue_share_pct": 11.74,
+        "rank_by_revenue": 4
+      },
+      {
+        "product_id": "P04",
+        "product_name": "Soft drinks",
+        "months_active": 12,
+        "revenue": 393192.45,
+        "units_sold": 8738.0,
+        "cost": 306690.12,
+        "gross_profit": 86502.33,
+        "gross_margin_pct": 22.0,
+        "revenue_share_pct": 10.55,
+        "rank_by_revenue": 5
+      },
+      {
+        "product_id": "P07",
+        "product_name": "Frozen foods",
+        "months_active": 12,
+        "revenue": 216127.9,
+        "units_sold": 1080.0,
+        "cost": 177224.89,
+        "gross_profit": 38903.01,
+        "gross_margin_pct": 18.0,
+        "revenue_share_pct": 5.8,
+        "rank_by_revenue": 6
+      },
+      {
+        "product_id": "P06",
+        "product_name": "Stationery",
+        "months_active": 12,
+        "revenue": 158562.28,
+        "units_sold": 5286.0,
+        "cost": 103065.49,
+        "gross_profit": 55496.79,
+        "gross_margin_pct": 35.0,
+        "revenue_share_pct": 4.25,
+        "rank_by_revenue": 7
+      }
+    ]
+  },
+  "business_type": "retail",
+  "engine_version": "0.1.0"
+}

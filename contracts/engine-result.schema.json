@@ -1,0 +1,665 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "biziq/engine-result.schema.json",
+  "title": "BizIQ analytics-engine result (native format)",
+  "description": "Native output of analytics_engine.run_analysis(). Money in INR as numbers, months YYYY-MM, percentages as percent numbers (23.29 = 23.29%), missing = null (never 0). The API-facing contract is analysis-result.schema.json; analytics_engine.api_adapter converts this format to that one.",
+  "type": "object",
+  "required": [
+    "analysis_id",
+    "business_id",
+    "status",
+    "evidence_level",
+    "benchmark_status",
+    "validation",
+    "metrics",
+    "findings",
+    "recommendations"
+  ],
+  "properties": {
+    "analysis_id": {
+      "type": "string"
+    },
+    "business_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "partial",
+        "failed"
+      ]
+    },
+    "evidence_level": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "benchmark_status": {
+      "enum": [
+        "available",
+        "partial",
+        "unavailable"
+      ]
+    },
+    "error": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "errors",
+        "warnings"
+      ],
+      "properties": {
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/issue"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/issue"
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/metric"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/recommendation"
+      }
+    },
+    "health_score": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "weight",
+              "basis"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "weight": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "Effective weight in percent (sums to 100 over scored components); null when no score was produced."
+              },
+              "value": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "direction": {
+                "enum": [
+                  "raises",
+                  "lowers",
+                  "neutral",
+                  null
+                ]
+              },
+              "basis": {
+                "enum": [
+                  "measured",
+                  "benchmark",
+                  "rule"
+                ]
+              },
+              "base_weight": {
+                "type": "number"
+              },
+              "points": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "Component sub-score 0-100."
+              },
+              "effect_points": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "weight/100*(points-50): points this component added (+) or removed (-) vs a neutral 50."
+              },
+              "metric": {
+                "type": "string"
+              },
+              "explanation": {
+                "type": "string"
+              },
+              "benchmark": {
+                "type": "object",
+                "description": "Present when basis is 'benchmark': value, source, year, geography_level."
+              }
+            }
+          }
+        },
+        "unavailable_components": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "band": {
+          "enum": [
+            "strong",
+            "moderate",
+            "weak",
+            "at risk",
+            null
+          ]
+        },
+        "coverage_pct": {
+          "type": "number",
+          "description": "Share of the full scoring weight covered by available components."
+        },
+        "raised_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lowered_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "disclaimer": {
+          "type": "string"
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "properties": {
+        "segmentation": {
+          "$ref": "#/$defs/model"
+        },
+        "forecast": {
+          "$ref": "#/$defs/model"
+        }
+      }
+    },
+    "business_type": {
+      "enum": [
+        "retail",
+        "service",
+        "other"
+      ]
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "evidence_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Plain-language reasons behind evidence_level."
+    },
+    "data_coverage": {
+      "type": "object",
+      "description": "Per-dataset coverage summary (months, customers, products, ...).",
+      "additionalProperties": {
+        "type": [
+          "object",
+          "null"
+        ]
+      }
+    },
+    "series": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Chart-ready rows. Only months/products that exist in the data are listed; missing values are null, never 0. No per-customer rows.",
+      "properties": {
+        "financial_monthly": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "period"
+            ],
+            "properties": {
+              "period": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+              },
+              "revenue": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "expenses": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "expenses_complete": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "profit": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "description": "Only when expenses are marked complete for that month."
+              },
+              "needs_review": {
+                "type": "boolean"
+              },
+              "listed_expenses_exceed_revenue": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "customer_monthly": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "period"
+            ],
+            "properties": {
+              "period": {
+                "type": "string",
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+              },
+              "active_customers": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "spend": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "transactions": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "product_id"
+            ],
+            "properties": {
+              "product_id": {
+                "type": "string"
+              },
+              "product_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "months_active": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "revenue": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "units_sold": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cost": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "gross_profit": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "gross_margin_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "revenue_share_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "rank_by_revenue": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "issue": {
+      "type": "object",
+      "required": [
+        "severity",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "dataset": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "column": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": "string"
+        },
+        "period": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "formula": {
+          "type": "string"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Why value is null."
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Caveat for a value that WAS computed (e.g. based on 10 of 12 months)."
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "metric",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "metric": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "comparison": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "required": [
+        "id",
+        "finding_ids",
+        "issue",
+        "action",
+        "priority",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "finding_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "issue": {
+          "type": "string"
+        },
+        "supporting_metric": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "priority": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "kpi": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "rule_id": {
+          "type": "string",
+          "description": "Engine rule that produced the recommendation."
+        },
+        "expected_direction": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Direction we aim for on a metric (not a forecast). Null for data-quality actions.",
+          "properties": {
+            "metric": {
+              "type": "string"
+            },
+            "direction": {
+              "enum": [
+                "increase",
+                "decrease"
+              ]
+            }
+          }
+        },
+        "caveat": {
+          "type": "string",
+          "description": "Present when the evidence level is low."
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ok",
+            "skipped_insufficient_data",
+            "not_applicable",
+            "failed"
+          ]
+        },
+        "mae": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rmse": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "details": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

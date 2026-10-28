@@ -166,7 +166,7 @@ def test_sample_datasets(scenario, btype, expected):
 
 def test_recommendations_match_contract_schema():
     jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads((SAMPLES.parents[1] / "contracts" / "analysis-result.schema.json").read_text())
+    schema = json.loads((SAMPLES.parents[1] / "contracts" / "engine-result.schema.json").read_text())
     ref = {"$ref": "#/$defs/recommendation", "$defs": schema["$defs"]}
     recs = build_recommendations([F("A", t, "high") for r in RULES for t in r.types], "service", "low")
     assert len(recs) == len(RULES)

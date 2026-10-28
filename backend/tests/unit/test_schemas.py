@@ -18,7 +18,7 @@ from app.schemas import (
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CONTRACTS = REPO_ROOT / "contracts"
-EXAMPLES = sorted((CONTRACTS / "examples").glob("*.json"))
+EXAMPLES = sorted((CONTRACTS / "examples").glob("analysis-result.*.example.json"))
 
 
 def _load(path: Path) -> dict:

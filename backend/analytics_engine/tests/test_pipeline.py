@@ -10,7 +10,7 @@ from analytics_engine import run_analysis
 from analytics_engine.evidence import assess_evidence
 from analytics_engine.validation import validate_table
 
-SCHEMA = json.load(open(SAMPLES.parents[1] / "contracts" / "analysis-result.schema.json"))
+SCHEMA = json.load(open(SAMPLES.parents[1] / "contracts" / "engine-result.schema.json"))
 BIZ = json.load(open(SAMPLES / "businesses.json"))
 TABLES = {"retail": ["financials", "customers", "products"], "service": ["financials", "customers"],
           "cold_start": ["financials"], "messy": ["financials"]}

@@ -32,6 +32,10 @@ from .scoring import compute_health_score
 from .validation import Issue, validate_all
 
 
+PRODUCT_SERIES_KEYS = ("product_id", "product_name", "months_active", "revenue", "units_sold", "cost",
+                       "gross_profit", "gross_margin_pct", "revenue_share_pct", "rank_by_revenue")
+
+
 def _jsonable(x: Any) -> Any:
     """Recursively convert numpy / pandas scalars and NaN/inf so the result is JSON-safe."""
     if isinstance(x, dict):
@@ -178,6 +182,14 @@ def _run(analysis_id, business_id, business, data, benchmarks) -> dict[str, Any]
         if part:
             metrics.update(part.get("metrics", {}))
 
+    # --- chart-ready series (no per-customer rows: customer ids are not needed for charts) ----
+    series = {
+        "financial_monthly": fin.get("monthly", []) if fin_clean is not None else [],
+        "customer_monthly": (cus or {}).get("monthly", []) if cus_clean is not None else [],
+        "products": ([{k: row.get(k) for k in PRODUCT_SERIES_KEYS} for row in (pro or {}).get("products", [])]
+                     if pro_clean is not None else []),
+    }
+
     # --- status ----------------------------------------------------------
     expected_unusable = [n for n, r in reports.items() if not r.is_usable]
     partial = bool(errors) or bool(expected_unusable) or fin_clean is None or \
@@ -200,5 +212,5 @@ def _run(analysis_id, business_id, business, data, benchmarks) -> dict[str, Any]
         "data_coverage": {"financials": cov if fin_clean is not None else None,
                           "customers": (cus or {}).get("coverage") if cus_clean is not None else None,
                           "products": (pro or {}).get("coverage") if pro_clean is not None else None},
-        "business_type": btype, "engine_version": __version__,
+        "series": series, "business_type": btype, "engine_version": __version__,
     }
