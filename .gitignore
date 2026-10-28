@@ -60,3 +60,10 @@ model_artifacts/*
 Thumbs.db
 .vscode/
 .idea/
+
+# Local scratch files
+*.backup
+*.temp
+*.zip
+bundle*.txt
+build-result.txt
