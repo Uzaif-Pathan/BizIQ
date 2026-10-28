@@ -20,6 +20,14 @@ npm run build
 npm run preview
 ```
 
+## Tests
+
+```bash
+npm test
+```
+
+Runs the automated unit tests in `tests/` (Vitest): the API client, the business mapping, the state migration and the number formatters. The screens themselves are covered by the manual checklist in `TESTING.md`.
+
 ## What is included
 
 - Registration page (first screen) and sign-in, with per-account workspaces stored in the browser
@@ -50,6 +58,7 @@ The frontend talks to the FastAPI backend through `src/services/api.ts`.
 - Business profile: name, industry, business model, city/state, description and stage are saved to the server.
 - Dashboard "Analysis" panel: runs an analysis and shows the latest result. Missing metrics are shown as "Not available", never as 0.
 - Findings, Recommendations and Report pages: built from the latest analysis result.
+- Businesses that lost their server copy can be saved again with the "Save to server" button.
 
 The backend currently keeps businesses and analyses in memory only (no database yet). Restarting the backend empties its list, and the app then tags those businesses "Not saved on server".
 

@@ -230,11 +230,30 @@ export function businessFromApi(b: BusinessRead, local: any = {}) {
 export function businessToApi(f: { name: string; industry: string; type: string; location: string }): BusinessCreate {
   const [city, state] = f.location.split(',').map((s) => s.trim());
   return {
-    name: f.name,
+    name: f.name.trim(),
     industry: f.industry,
     business_type: f.type.toLowerCase() as BusinessType,
     city: city || null,
     state: state || null,
+  };
+}
+
+// ASSUMPTION (not confirmed): stages "Idea"/"Launching" -> "new", every other stage -> "established".
+const stageToApi = (stage: string): 'new' | 'established' =>
+  ['Idea', 'Launching'].includes(stage) ? 'new' : 'established';
+
+// A business that only exists on this device -> payload for creating it on the server.
+// Carries over the description and stage from the local profile when there is one.
+export function businessCreateFromLocal(
+  b: { name: string; industry: string; type: string; location: string },
+  profile?: { description?: string; stage?: string },
+): BusinessCreate {
+  const base = businessToApi(b);
+  if (!profile) return base;
+  return {
+    ...base,
+    description: (profile.description || '').trim() || null,
+    stage: stageToApi(profile.stage || 'Operating'),
   };
 }
 
@@ -252,6 +271,6 @@ export function businessUpdateFromProfile(f: {
     city: city || null,
     state: state || null,
     description: f.description.trim() || null,
-    stage: ['Idea', 'Launching'].includes(f.stage) ? 'new' : 'established',
+    stage: stageToApi(f.stage),
   };
 }
