@@ -1,0 +1,4 @@
+# Extra packages for running the engine's tests. Put these in backend/requirements-dev.txt (currently empty).
+pytest>=8        # tested with 9.1.1
+jsonschema>=4.20 # tested with 4.26.0; schema tests are skipped when it is missing
+pydantic>=2      # already pulled in by fastapi; used by the contract drift test

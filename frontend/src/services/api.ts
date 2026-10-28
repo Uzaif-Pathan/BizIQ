@@ -85,6 +85,44 @@ export interface Recommendation {
   kpi?: string | null;
   expected_direction?: 'increase' | 'decrease' | 'maintain' | null;
 }
+// ---- Optional fields added by the real analytics engine (all may be absent or null) ----
+// Any numeric value inside `series` can be null. Treat null as "unknown", never as 0
+// (see src/utils/series.js).
+export interface FinancialMonth {
+  period: string; // 'YYYY-MM'
+  revenue: number | null;
+  expenses: number | null;
+  expenses_complete: boolean | null;
+  profit: number | null;
+  needs_review: boolean | null;
+  listed_expenses_exceed_revenue: boolean | null;
+}
+export interface CustomerMonth {
+  period: string;
+  active_customers: number | null;
+  spend: number | null;
+  transactions: number | null;
+}
+export interface ProductSeriesRow {
+  product_id: string;
+  product_name: string;
+  months_active: number | null;
+  revenue: number | null;
+  units_sold: number | null;
+  cost: number | null;
+  gross_profit: number | null;
+  gross_margin_pct: number | null;
+  revenue_share_pct: number | null;
+  rank_by_revenue: number | null;
+}
+export interface AnalysisSeries {
+  financial_monthly?: FinancialMonth[] | null;
+  customer_monthly?: CustomerMonth[] | null;
+  products?: ProductSeriesRow[] | null;
+}
+// Shapes below are not confirmed by Person 2 yet, so they are kept loose on purpose.
+export type LooseObject = Record<string, unknown>;
+
 export interface AnalysisResult {
   analysis_id: string;
   business_id: string;
@@ -99,6 +137,13 @@ export interface AnalysisResult {
   error_message?: string | null;
   created_at?: string | null;
   completed_at?: string | null;
+  series?: AnalysisSeries | null;
+  metric_details?: LooseObject | null;
+  health_score?: LooseObject | number | null;
+  models?: LooseObject | null;
+  validation?: LooseObject | null;
+  data_coverage?: LooseObject | null;
+  engine_status?: LooseObject | string | null;
 }
 export interface AnalysisRunSummary {
   analysis_id: string;
