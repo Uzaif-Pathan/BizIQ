@@ -369,6 +369,38 @@ const SERIES_PAGES = {
   trends:['TRENDS & BENCHMARKS','Put changes in context','Month-over-month movement from your own records. Benchmarks appear only when the server provides them.',TrendingUp]
 };
 const chartTip = {contentStyle:{border:'1px solid #e8e8e5',borderRadius:10,fontSize:14}};
+const SPECIFICITY_LABEL={all_industries:'All industries',broad_sector:'Broad sector',detailed_activity:'Specific activity'};
+const SPECIFICITY_TONE={all_industries:'amber',broad_sector:'amber',detailed_activity:'green'};
+// Survey context (value added and pay) from the ASUSE survey. Kept apart from the analysis and the health score:
+// these figures are not profit margins and are never compared with them.
+function IndustryComparison({business}){
+  const onServer=business.synced===true;
+  const [st,setSt]=useState({loading:onServer,data:null,error:''});
+  useEffect(()=>{
+    if(!onServer){setSt({loading:false,data:null,error:''});return;}
+    let cancelled=false;setSt({loading:true,data:null,error:''});
+    api.getBenchmarks(business.id).then(d=>{if(!cancelled)setSt({loading:false,data:d,error:''});}).catch(e=>{if(!cancelled)setSt({loading:false,data:null,error:describeError(e)});});
+    return()=>{cancelled=true;};
+  },[business.id,onServer]);
+  const d=st.data,items=d?.items||[];
+  const rows=items.map((i,n)=>({...i,id:`${i.metric}-${i.geography_level_used}-${n}`}));
+  return <section className="panel" style={{marginBottom:24}}>
+    <div className="panel-heading"><div><h3>Industry comparison (ASUSE survey)</h3><p>Survey averages for similar small, unincorporated businesses. For context only; not part of your health score.</p></div>{d&&<Tag tone={d.status==='available'?'green':'neutral'}>{d.status}</Tag>}</div>
+    {!onServer&&<p className="small-text muted">Save this business on the server to see an industry comparison.</p>}
+    {st.loading&&<p className="small-text muted">Loading industry comparison…</p>}
+    {st.error&&<p className="small-text muted">Industry comparison could not be loaded. {st.error}</p>}
+    {d&&!items.length&&<p className="small-text muted">No survey figures were found for this business.</p>}
+    {rows.length>0&&<DataTable rows={rows} columns={[
+      {key:'label',label:'Measure',render:r=><span title={r.definition}>{r.label}</span>},
+      {key:'group',label:'Compared with',render:r=>`${r.industry_used} · ${r.geography}`},
+      {key:'specificity',label:'How specific',render:r=><span title={r.specificity_note||''}><Tag tone={SPECIFICITY_TONE[r.specificity]||'neutral'}>{SPECIFICITY_LABEL[r.specificity]||r.specificity}</Tag></span>},
+      {key:'value',label:'Survey average',align:'right',render:r=>`${currency(r.value)} / year`},
+      {key:'source',label:'Source',render:r=>`${r.source}, ${r.year}`}
+    ]}/>}
+    {rows.some(r=>r.specificity!=='detailed_activity')&&<p className="small-text muted" style={{marginTop:12}}>Rows marked “Broad sector” or “All industries” cover a wider group than your business category, so they are less specific than a “Specific activity” row. Detailed activities are available at national level only.</p>}
+    {d&&d.notes.length>0&&<ul className="small-text muted">{d.notes.map((n,i)=><li key={i}>{n}</li>)}</ul>}
+  </section>;
+}
 function SeriesPage({kind,business,setState}){
   const res=useLatestAnalysis(business,setState);
   const gate=analysisGate(business,res,'analysis');
@@ -468,9 +500,10 @@ function SeriesPage({kind,business,setState}){
       const mom=monthOverMonth(rows,'revenue');
       const notes=(res.analysis?.findings||[]).filter(f=>f.category==='trend'||f.category==='benchmark');
       body=<>
+        <IndustryComparison business={business}/>
         <section className="panel" style={{marginBottom:24}}>
-          <div className="panel-heading"><div><h3>Benchmarks</h3></div><Tag tone={res.analysis?.benchmark_status==='available'?'green':'neutral'}>{res.analysis?.benchmark_status||'unavailable'}</Tag></div>
-          <p className="small-text muted">{res.analysis?.benchmark_status==='available'?'Comparisons below come from the server with their evidence.':'No source-backed benchmark was provided, so no industry comparison is shown.'}</p>
+          <div className="panel-heading"><div><h3>Margin benchmarks</h3></div><Tag tone={res.analysis?.benchmark_status==='available'?'green':'neutral'}>{res.analysis?.benchmark_status||'unavailable'}</Tag></div>
+          <p className="small-text muted">{res.analysis?.benchmark_status==='available'?'Comparisons below come from the server with their evidence.':'No source-backed margin benchmark was provided, so your profit and gross margins are not compared with an industry figure.'}</p>
           {notes.length>0&&<ul className="small-text">{notes.map(f=><li key={f.finding_id}><strong>{f.title}</strong> — {f.description}</li>)}</ul>}
         </section>
         {!rows.length?missing('monthly financial figures'):<section className="panel">
