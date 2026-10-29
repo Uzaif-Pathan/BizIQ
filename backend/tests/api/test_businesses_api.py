@@ -1,4 +1,3 @@
-from uuid import uuid4
 
 
 def test_create_and_get_business(client):
@@ -59,12 +58,12 @@ def test_update_business_empty_body_rejected(client, business):
 
 
 def test_missing_business_returns_404_format(client):
-    r = client.get(f"/api/v1/businesses/{uuid4()}")
+    r = client.get(f"/api/v1/businesses/999999999")
     assert r.status_code == 404
     assert r.json()["error"]["code"] == "not_found"
-    assert client.patch(f"/api/v1/businesses/{uuid4()}", json={"city": "X"}).status_code == 404
+    assert client.patch(f"/api/v1/businesses/999999999", json={"city": "X"}).status_code == 404
 
 
 def test_invalid_business_id_is_validation_error(client):
-    r = client.get("/api/v1/businesses/not-a-uuid")
+    r = client.get("/api/v1/businesses/not-a-number")
     assert r.status_code == 422

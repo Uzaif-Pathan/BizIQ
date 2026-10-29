@@ -19,7 +19,7 @@ If you change one, change the other and tell the team.
   `evidence_level: "insufficient"`, `benchmark_status: "unavailable"`.
   A `failed` run must also set `error_message`.
 - Every recommendation lists the `supporting_finding_ids` that triggered it.
-- Business ids and analysis ids in real data are UUID strings. The samples use readable ids.
+- Business ids and analysis ids are strings in JSON. Real business ids are whole numbers sent as text (for example "42"); analysis ids are text too. The samples use readable ids.
 
 ## Core fields
 `analysis_id`, `business_id`, `status`, `metrics`, `findings`, `recommendations`,

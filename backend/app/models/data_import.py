@@ -19,6 +19,10 @@ class DataImport(Base):
 
     __table_args__ = (
         CheckConstraint(
+            "data_type IN ('FINANCIALS', 'CUSTOMERS', 'PRODUCTS')",
+            name="data_imports_data_type_check",
+        ),
+        CheckConstraint(
             "import_status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED')",
             name="data_imports_import_status_check",
         ),
@@ -49,6 +53,10 @@ class DataImport(Base):
     uploaded_by: Mapped[int | None] = mapped_column(
         BigInteger,
         ForeignKey("app_users.user_id", ondelete="SET NULL"),
+    )
+
+    data_type: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default=text("'FINANCIALS'")
     )
 
     file_name: Mapped[str] = mapped_column(

@@ -3,9 +3,10 @@
 from datetime import datetime
 from enum import Enum
 from typing import Annotated, Optional
-from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+
+from app.schemas.common import EntityId
 
 FileName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
 
@@ -30,11 +31,10 @@ class IssueSeverity(str, Enum):
 
 
 class DataImportCreate(BaseModel):
-    """Registers an uploaded file. Only metadata is stored here, never the file itself."""
+    """Metadata of an uploaded file. The file itself is never stored, only its validated rows."""
 
     data_type: ImportDataType
     file_name: FileName
-    file_size_bytes: Optional[int] = Field(default=None, ge=0)
 
 
 class DataImportStatusUpdate(BaseModel):
@@ -53,11 +53,10 @@ class DataImportStatusUpdate(BaseModel):
 class DataImportRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
-    business_id: UUID
+    id: EntityId
+    business_id: EntityId
     data_type: ImportDataType
     file_name: str
-    file_size_bytes: Optional[int] = None
     status: ImportStatus
     row_count: Optional[int] = None
     valid_row_count: Optional[int] = None
@@ -79,6 +78,6 @@ class ValidationIssueCreate(BaseModel):
 class ValidationIssueRead(ValidationIssueCreate):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
-    import_id: UUID
+    id: EntityId
+    import_id: EntityId
     created_at: datetime

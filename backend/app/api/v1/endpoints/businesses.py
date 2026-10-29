@@ -1,5 +1,4 @@
 from typing import List
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 
@@ -25,7 +24,7 @@ def list_businesses(
 
 
 @router.get("/{business_id}", response_model=BusinessRead)
-def get_business(business_id: UUID, repo=Depends(get_business_repo)):
+def get_business(business_id: int, repo=Depends(get_business_repo)):
     business = repo.get(business_id)
     if business is None:
         raise AppError("Business not found.", status_code=404)
@@ -34,7 +33,7 @@ def get_business(business_id: UUID, repo=Depends(get_business_repo)):
 
 @router.patch("/{business_id}", response_model=BusinessRead)
 def update_business(
-    business_id: UUID, data: BusinessUpdate, repo=Depends(get_business_repo)
+    business_id: int, data: BusinessUpdate, repo=Depends(get_business_repo)
 ):
     business = repo.update(business_id, data)
     if business is None:

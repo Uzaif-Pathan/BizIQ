@@ -12,7 +12,7 @@ Conventions
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -103,13 +103,17 @@ class Recommendation(BaseModel):
     evidence: List[str] = Field(default_factory=list)
     kpi: Optional[str] = None
     expected_direction: Optional[ImpactDirection] = None
+    # Optional details from the analytics engine (see contracts/analysis-result.schema.json).
+    supporting_metric: Optional[str] = None
+    rule_id: Optional[str] = None
+    caveat: Optional[str] = None
 
 
 class AnalysisResult(BaseModel):
     """The standard analysis response. All eight core fields are always present."""
 
     # Plain strings: sample data uses ids like "sample-analysis-001".
-    # Real ids are UUID strings.
+    # Real ids are integers sent as strings (e.g. "42").
     analysis_id: str
     business_id: str
     status: AnalysisStatus
@@ -125,6 +129,17 @@ class AnalysisResult(BaseModel):
     error_message: Optional[str] = None
     created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+
+    # Optional extras produced by the analytics engine. Their exact shape is defined in
+    # contracts/analysis-result.schema.json; any numeric value inside may be null (= unknown, never 0).
+    engine_status: Optional[str] = None  # raw engine status: completed | partial
+    error_code: Optional[str] = None
+    metric_details: Optional[Dict[str, Any]] = None
+    health_score: Optional[Dict[str, Any]] = None
+    models: Optional[Dict[str, Any]] = None
+    validation: Optional[Dict[str, Any]] = None
+    data_coverage: Optional[Dict[str, Any]] = None
+    series: Optional[Dict[str, Any]] = None
 
     @model_validator(mode="after")
     def _failed_needs_message(self) -> "AnalysisResult":

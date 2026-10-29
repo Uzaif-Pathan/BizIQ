@@ -13,6 +13,7 @@ class MonthlyProductMetric(Base):
         UniqueConstraint("product_id", "period_start", name="monthly_product_metrics_product_id_period_start_key"),
         CheckConstraint("closing_inventory >= 0", name="monthly_product_metrics_closing_inventory_check"),
         CheckConstraint("total_revenue >= 0", name="monthly_product_metrics_total_revenue_check"),
+        CheckConstraint("total_cost >= 0", name="monthly_product_metrics_total_cost_check"),
         CheckConstraint("units_returned >= 0", name="monthly_product_metrics_units_returned_check"),
         CheckConstraint("units_sold >= 0", name="monthly_product_metrics_units_sold_check"),
     )
@@ -22,6 +23,8 @@ class MonthlyProductMetric(Base):
     period_start: Mapped[date] = mapped_column(Date, nullable=False)
     units_sold: Mapped[int | None] = mapped_column(Integer)
     total_revenue: Mapped[Decimal | None] = mapped_column(Numeric(16, 2))
+    # Total cost of what was sold that month. NULL = unknown (never 0).
+    total_cost: Mapped[Decimal | None] = mapped_column(Numeric(16, 2))
     units_returned: Mapped[int | None] = mapped_column(Integer)
     closing_inventory: Mapped[int | None] = mapped_column(Integer)
     source_import_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("data_imports.import_id", ondelete="SET NULL"))

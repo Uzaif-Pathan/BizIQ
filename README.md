@@ -1,84 +1,58 @@
-# BizIQ — Analytics Engine (Person 2)
+# BizIQ
 
-This repository contains Person 2's standalone Python analytics engine for the BizIQ college project. It analyzes business financials, customers, and products/services; reports data-quality issues; produces evidence-based findings and recommendations; and returns a JSON result for Person 3's backend adapter and Person 1's frontend.
+Business analytics for small businesses: upload monthly financials, customer and product records, and get
+measured metrics, findings and evidence-backed recommendations. Results are suggestions to investigate, not
+predictions of success. Synthetic data in `data/samples/` is for demonstration only.
 
-## Quick start
+## Parts
 
-Python 3.10+ is recommended.
+| Folder | What it is |
+|---|---|
+| `frontend/` | React + Vite app (see `frontend/README.md`) |
+| `backend/` | FastAPI API, database models and migrations (`backend/app`, `backend/alembic`) |
+| `backend/analytics_engine/` | Standalone Python analytics engine (see its `README.md`) |
+| `contracts/` | JSON schemas and examples shared by the engine, API and frontend |
+| `data/samples/` | Synthetic sample datasets (retail, service, cold start, messy) |
+| `database/` | Reference data (benchmarks) and seed files |
+| `docs/` | Architecture, formulas, recommendation rules, integration notes |
+| `scripts/` | Sample generator, demo runner, sample checker |
+
+## Run the backend
 
 ```bash
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-python scripts/run_demo.py --scenario retail --summary
-```
-
-To save the full machine-readable result and validate it against the shared schema:
-
-```bash
-python scripts/run_demo.py --scenario retail --pretty \
-  --output output/retail-analysis.json --check-schema
-```
-
-Available synthetic scenarios:
-
-```bash
-python scripts/run_demo.py --scenario retail --summary
-python scripts/run_demo.py --scenario service --summary
-python scripts/run_demo.py --scenario cold_start --summary
-python scripts/run_demo.py --scenario messy --summary
-```
-
-The `messy` scenario intentionally includes data-quality problems; a `partial` result is expected. All included datasets are synthetic.
-
-## Run verification
-
-```bash
 cd backend
-python -m pytest analytics_engine/tests -q
-cd ..
+cp .env.example .env        # set DATABASE_URL for database features
+uvicorn app.main:app --reload
+```
+
+API docs: http://localhost:8000/docs. The API starts without a database; routes that need one return a
+clear 503 until `DATABASE_URL` is set.
+
+## Run the frontend
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+## Try the engine without the app
+
+```bash
+python scripts/run_demo.py --scenario retail --summary
 python scripts/check_samples.py
 ```
 
-The regression suite covers financial, customer and product metrics, validation, segmentation, forecasting, health scoring, recommendations, pipeline behaviour, CLI output, and JSON contract compatibility.
+## Tests
 
-## Use the engine in an adapter
-
-```python
-from analytics_engine import run_analysis
-
-result = run_analysis(
-    business={
-        "business_id": "your-authorized-business-id",
-        "business_type": "retail",  # retail, service, or other
-        "industry": "general retail",
-        "location": "Nashik, Maharashtra",
-    },
-    data={
-        "financials": financials_df,
-        "customers": customers_df,  # optional
-        "products": products_df,    # optional
-    },
-)
+```bash
+cd backend && python -m pytest -q          # backend and analytics engine
+cd frontend && npm test                    # frontend
 ```
 
-Before passing data, Person 3's adapter must authorize access to the business and fetch only records the user is permitted to analyze. `run_analysis` returns a JSON-safe dictionary and does not connect to a database or web service. The shared response contract is `contracts/analysis-result.schema.json`; integration notes are in `docs/PERSON3_INTEGRATION.md`.
+## Rules the project follows
 
-## Key safeguards
-
-- Missing values are not silently represented as zero.
-- Data validation issues are returned as structured errors and warnings.
-- Financial calculations include formula/period metadata.
-- Segmentation and forecasting report evaluation status and can abstain when data is insufficient or model quality is weak.
-- Health scoring is a transparent rule-based indicator, not a probability of business success.
-- Recommendations are tied to findings and evidence; they are suggestions, not guaranteed outcomes.
-
-## Project layout
-
-- `backend/analytics_engine/` — engine modules and tests
-- `contracts/analysis-result.schema.json` — shared JSON response contract
-- `data/samples/` — synthetic demo datasets
-- `scripts/run_demo.py` — command-line demo
-- `scripts/check_samples.py` — all-scenario schema/serialization verification
-- `scripts/generate_demo_data.py` — reproducible synthetic data generator
-- `docs/ENGINE_FORMULAS.md` — documented formula definitions
-- `docs/PERSON3_INTEGRATION.md` — backend integration guidance
-- `docs/VERIFICATION.md` — latest test and scenario verification record
+- Missing data is never treated as zero; unknown stays unknown.
+- No invented industry benchmarks; benchmark data always shows its source, year and level.
+- Synthetic and mock data is labelled as such.
+- Credentials, virtual environments and caches are not committed.

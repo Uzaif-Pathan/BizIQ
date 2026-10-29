@@ -1,10 +1,9 @@
 from datetime import datetime, timezone
 from typing import List
-from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from app.api.deps import get_analysis_repo, get_business_repo
+from app.api.deps import get_analysis_repo, get_business_repo, get_progress_repo
 from app.core.errors import AppError
 from app.schemas.analysis import (
     AnalysisResult,
@@ -31,7 +30,7 @@ def _get_analysis_or_404(analysis_id: str, analysis_repo) -> AnalysisResult:
     "/businesses/{business_id}/analyses", response_model=AnalysisResult, status_code=201
 )
 def request_analysis(
-    business_id: UUID,
+    business_id: int,
     business_repo=Depends(get_business_repo),
     analysis_repo=Depends(get_analysis_repo),
     engine=Depends(get_analytics_engine),
@@ -47,7 +46,7 @@ def request_analysis(
     "/businesses/{business_id}/analyses", response_model=List[AnalysisRunSummary]
 )
 def list_analysis_history(
-    business_id: UUID,
+    business_id: int,
     business_repo=Depends(get_business_repo),
     analysis_repo=Depends(get_analysis_repo),
 ):
@@ -78,15 +77,19 @@ def get_report(
     analysis_id: str,
     business_repo=Depends(get_business_repo),
     analysis_repo=Depends(get_analysis_repo),
+    progress_repo=Depends(get_progress_repo),
 ):
     analysis = _get_analysis_or_404(analysis_id, analysis_repo)
     if analysis.status != AnalysisStatus.COMPLETED:
         raise AppError(
             "A report is available only for completed analyses.", status_code=409
         )
-    business = business_repo.get(UUID(analysis.business_id))
+    business = business_repo.get(int(analysis.business_id))
     if business is None:
         raise AppError("Business not found.", status_code=404)
     return ReportPayload(
-        business=business, analysis=analysis, generated_at=datetime.now(timezone.utc)
+        business=business,
+        analysis=analysis,
+        generated_at=datetime.now(timezone.utc),
+        recommendation_progress=progress_repo.latest(analysis_id),
     )

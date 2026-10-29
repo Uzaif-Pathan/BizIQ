@@ -1,4 +1,3 @@
-from uuid import uuid4
 
 from app.api.deps import get_analysis_repo
 from app.main import app
@@ -37,7 +36,7 @@ def test_get_analysis_findings_and_recommendations(client, business):
 
 
 def test_analysis_for_missing_business(client):
-    r = client.post(f"/api/v1/businesses/{uuid4()}/analyses")
+    r = client.post(f"/api/v1/businesses/999999999/analyses")
     assert r.status_code == 404
     assert r.json()["error"]["code"] == "not_found"
 
@@ -99,3 +98,17 @@ def test_report_for_failed_analysis_is_conflict(client, business):
     r = client.get(f"/api/v1/analyses/{aid}/report")
     assert r.status_code == 409
     assert r.json()["error"]["code"] == "conflict"
+
+
+def test_engine_failure_message_reaches_the_client(client, business):
+    from analytics_engine.api_adapter import EngineRunFailed
+
+    def engine(_b):
+        raise EngineRunFailed("no_usable_data", "None of the provided tables could be used.")
+
+    app.dependency_overrides[get_analytics_engine] = lambda: engine
+    r = client.post(f"/api/v1/businesses/{business['id']}/analyses")
+    body = r.json()
+    assert body["status"] == "failed"
+    assert body["error_message"] == "None of the provided tables could be used."
+    assert body["error_code"] == "no_usable_data"

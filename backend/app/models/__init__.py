@@ -6,6 +6,7 @@ from app.models.validation_issue import ValidationIssue
 from app.models.monthly_financial import MonthlyFinancial
 
 from app.models.monthly_customer_metric import MonthlyCustomerMetric
+from app.models.customer_activity import CustomerActivity
 from app.models.product_service import ProductService
 from app.models.monthly_product_metric import MonthlyProductMetric
 from app.models.benchmark_source import BenchmarkSource
@@ -25,6 +26,7 @@ __all__ = [
     "ValidationIssue",
     "MonthlyFinancial",
     "MonthlyCustomerMetric",
+    "CustomerActivity",
     "ProductService",
     "MonthlyProductMetric",
     "BenchmarkSource",
