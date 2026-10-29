@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from analytics_engine.api_adapter import EngineRunFailed
 from app.schemas.analysis import (
     AnalysisResult,
     AnalysisStatus,
@@ -60,6 +61,19 @@ def run_analysis(business: BusinessRead, engine: AnalyticsEngine, analysis_repo,
             created_at=created_at,
             completed_at=_now(),
             **output,
+        )
+    except EngineRunFailed as exc:
+        # Expected failure: the engine explains why (e.g. no usable financial data). The message is
+        # written for users and contains no internal details, so it is safe to show.
+        logger.info("Analysis %s could not run for business %s: %s", analysis_id, business_id, exc.code)
+        result = _empty_result(
+            analysis_id,
+            business_id,
+            AnalysisStatus.FAILED,
+            created_at,
+            completed_at=_now(),
+            error_message=exc.message,
+            error_code=exc.code,
         )
     except Exception:
         logger.exception("Analysis %s failed for business %s", analysis_id, business_id)

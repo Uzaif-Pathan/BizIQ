@@ -1,31 +1,35 @@
 """Adapter between the BizIQ API and the analytics engine."""
 
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
-import pandas as pd
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
+from app.db.dependencies import get_db_optional
 from app.schemas.business import BusinessRead
+from app.services.data_loader import load_engine_data
 from analytics_engine.api_adapter import run_for_service
 
 AnalyticsEngine = Callable[[BusinessRead], Dict[str, Any]]
 
 
 def real_engine(business: BusinessRead) -> Dict[str, Any]:
-    """Run analysis using available data without fabricating financial records."""
-    data = {
-        "financials": None,
-        "customers": None,
-        "products": None,
-    }
+    """Engine with no stored data (used when no database is configured).
 
-    # The current API has no connected financial/customer/product repository.
-    # Keep unavailable datasets as None rather than inventing data.
-    return run_for_service(business, data)
+    Every table is None, so the run fails with "no usable data" rather than inventing numbers."""
+    return run_for_service(business, {"financials": None, "customers": None, "products": None})
 
 
-def get_analytics_engine() -> AnalyticsEngine:
-    """Return the real analytics engine adapter."""
-    return real_engine
+def get_analytics_engine(db: Optional[Session] = Depends(get_db_optional)) -> AnalyticsEngine:
+    """Return the real engine. With a database, it reads the business's stored rows; without one it
+    gets no data (the run then fails with a clear reason instead of inventing numbers)."""
+    if db is None:
+        return real_engine
+
+    def engine(business: BusinessRead) -> Dict[str, Any]:
+        return run_for_service(business, load_engine_data(db, int(business.id)))
+
+    return engine
 
 
 def mock_engine(business: BusinessRead) -> Dict[str, Any]:

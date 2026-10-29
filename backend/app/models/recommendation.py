@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, String, Text, Numeric, DateTime, ForeignKey, CheckConstraint, text
+from sqlalchemy import BigInteger, String, Text, Numeric, DateTime, ForeignKey, CheckConstraint, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -10,6 +10,7 @@ from app.db.base import Base
 class Recommendation(Base):
     __tablename__ = "recommendations"
     __table_args__ = (
+        UniqueConstraint("analysis_id", "external_id", name="recommendations_analysis_id_external_id_key"),
         CheckConstraint("current_status IN ('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD')", name="recommendations_current_status_check"),
         CheckConstraint("evidence_strength IN ('HIGH', 'MEDIUM', 'LOW')", name="recommendations_evidence_strength_check"),
         CheckConstraint("priority IN ('HIGH', 'MEDIUM', 'LOW')", name="recommendations_priority_check"),
@@ -17,6 +18,8 @@ class Recommendation(Base):
 
     recommendation_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     analysis_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("analysis_runs.analysis_id", ondelete="CASCADE"), nullable=False)
+    # The engine's own id (for example REC-LOSS); progress is matched to a recommendation with it.
+    external_id: Mapped[str | None] = mapped_column(String(100))
     title: Mapped[str] = mapped_column(String(250), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     priority: Mapped[str] = mapped_column(String(10), nullable=False)

@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 from datetime import datetime, timezone
-from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
@@ -113,7 +112,7 @@ def test_business_update_partial_ok():
 def test_business_read_from_attributes():
     now = datetime.now(timezone.utc)
     row = SimpleNamespace(
-        id=uuid4(),
+        id=1,
         name="Sharma Traders",
         industry="Grocery",
         business_type="retail",
@@ -137,3 +136,12 @@ def test_business_read_from_attributes():
 def test_validation_issue_row_number_is_one_based():
     with pytest.raises(ValidationError):
         ValidationIssueCreate(severity="error", code="invalid_number", message="bad", row_number=0)
+
+
+def test_ids_are_ints_in_python_and_strings_in_json():
+    now = datetime.now(timezone.utc)
+    b = BusinessRead(id=42, name="Demo Store", industry="grocery", business_type="retail",
+                     created_at=now, updated_at=now)
+    assert b.id == 42 and b.model_dump()["id"] == 42
+    assert b.model_dump(mode="json")["id"] == "42"
+    assert '"id":"42"' in b.model_dump_json()

@@ -3,7 +3,6 @@
 from datetime import datetime
 from enum import Enum
 from typing import Annotated, List, Optional
-from uuid import UUID
 
 from pydantic import (
     BaseModel,
@@ -14,6 +13,7 @@ from pydantic import (
 )
 
 from app.schemas.analysis import AnalysisStatus
+from app.schemas.common import EntityId
 
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=200)]
 ShortText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
@@ -83,7 +83,7 @@ class BusinessUpdate(BaseModel):
 class BusinessRead(BusinessBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
+    id: EntityId
     goals: List[str] = Field(default_factory=list)
     # Shown on the My Businesses page. null means no analysis has been run yet.
     latest_analysis_status: Optional[AnalysisStatus] = None

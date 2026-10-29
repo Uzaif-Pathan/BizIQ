@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import BigInteger, String, Integer, Date, DateTime, ForeignKey, text, CHAR, CheckConstraint
+from sqlalchemy import BigInteger, String, Integer, Date, DateTime, ForeignKey, Text, text, CHAR, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -12,6 +12,10 @@ class Business(Base):
     CheckConstraint(
         "employee_count >= 0",
         name="businesses_employee_count_check",
+    ),
+    CheckConstraint(
+        "stage IN ('new', 'established')",
+        name="businesses_stage_check",
     ),
 )
 
@@ -32,6 +36,10 @@ class Business(Base):
     business_type: Mapped[str | None] = mapped_column(String(80))
     industry_code: Mapped[str | None] = mapped_column(String(30))
     industry_name: Mapped[str | None] = mapped_column(String(150))
+    stage: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default=text("'established'")
+    )
+    description: Mapped[str | None] = mapped_column(Text)
     business_model: Mapped[str | None] = mapped_column(String(100))
     target_segment: Mapped[str | None] = mapped_column(String(150))
 

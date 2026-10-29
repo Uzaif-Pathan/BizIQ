@@ -1,0 +1,26 @@
+# Local PostgreSQL for development and tests. Credentials match backend/.env.example (development only).
+#
+#   docker compose up -d db
+#   docker compose exec db createdb -U biziq_user biziq_test      # once, for the database tests
+#
+# Never reuse these credentials outside your own machine.
+services:
+  db:
+    image: postgres:16
+    container_name: biziq-db
+    environment:
+      POSTGRES_USER: biziq_user
+      POSTGRES_PASSWORD: change-this-password
+      POSTGRES_DB: biziq
+    ports:
+      - "5432:5432"
+    volumes:
+      - biziq_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U biziq_user -d biziq"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  biziq_pgdata:

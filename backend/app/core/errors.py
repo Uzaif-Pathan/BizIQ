@@ -21,6 +21,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger("biziq")
 
+
 _STATUS_CODES = {
     400: "bad_request",
     401: "unauthorized",
@@ -87,6 +88,12 @@ async def validation_exception_handler(
     return error_response(422, "validation_error", "Request validation failed.", details)
 
 
+async def database_not_configured_handler(request: Request, exc: Exception) -> JSONResponse:
+    return error_response(
+        503, "database_unavailable", "The database is not configured. Set DATABASE_URL and restart."
+    )
+
+
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.exception("Unhandled error on %s %s", request.method, request.url.path)
     return error_response(500, "internal_error", "An unexpected error occurred.")
@@ -96,4 +103,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    from app.db.session import DatabaseNotConfigured
+
+    app.add_exception_handler(DatabaseNotConfigured, database_not_configured_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)

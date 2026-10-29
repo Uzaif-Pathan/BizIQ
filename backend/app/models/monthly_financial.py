@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     Numeric,
     Date,
     DateTime,
@@ -65,29 +66,25 @@ class MonthlyFinancial(Base):
         Date, nullable=False
     )
 
-    revenue: Mapped[Decimal] = mapped_column(
+    revenue: Mapped[Decimal | None] = mapped_column(
         Numeric(16, 2),
-        nullable=False,
-        server_default=text("0"),
     )
 
-    fixed_expenses: Mapped[Decimal] = mapped_column(
+    fixed_expenses: Mapped[Decimal | None] = mapped_column(
         Numeric(16, 2),
-        nullable=False,
-        server_default=text("0"),
     )
 
-    variable_expenses: Mapped[Decimal] = mapped_column(
+    variable_expenses: Mapped[Decimal | None] = mapped_column(
         Numeric(16, 2),
-        nullable=False,
-        server_default=text("0"),
     )
 
-    other_expenses: Mapped[Decimal] = mapped_column(
+    other_expenses: Mapped[Decimal | None] = mapped_column(
         Numeric(16, 2),
-        nullable=False,
-        server_default=text("0"),
     )
+
+    # True: the listed expenses are every cost; False: the list is incomplete; NULL: not stated.
+    # Unknown revenue or expenses are stored as NULL, never as 0.
+    expenses_complete: Mapped[bool | None] = mapped_column(Boolean)
 
     investment_amount: Mapped[Decimal | None] = mapped_column(
         Numeric(16, 2)

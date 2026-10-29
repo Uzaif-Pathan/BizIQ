@@ -45,6 +45,14 @@ uploads/
 !data/samples/sample_financials.csv
 !data/samples/sample_customers.csv
 !data/samples/sample_products.csv
+# Synthetic scenario samples used by the analytics engine tests and scripts (no real data)
+!data/samples/
+!data/samples/**
+!data/samples/**/*.csv
+!data/samples/**/*.json
+# Reference data (benchmark tables) that the app loads
+!database/reference_data/
+!database/reference_data/*.csv
 
 # Generated model artifacts
 model_artifacts/*

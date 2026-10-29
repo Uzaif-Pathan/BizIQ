@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Used by the database layer (owned by the database/migrations task).
     database_url: str = ""
 
+    # Owner of every business until real login exists (the seed script creates this demo user).
+    default_owner_user_id: int = 1
+
     # Comma-separated list, e.g. "http://localhost:5173,http://127.0.0.1:5173"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
