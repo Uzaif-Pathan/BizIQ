@@ -140,3 +140,24 @@ describe('business mapping', () => {
     });
   });
 });
+
+describe('benchmarks', () => {
+  it('fetches the industry comparison for a business from its own endpoint', async () => {
+    let url = '';
+    vi.stubGlobal('fetch', async (u: string) => {
+      url = u;
+      return jsonResponse(200, {
+        business_id: '7', status: 'available', levels_tried: ['district', 'state', 'region', 'national'],
+        notes: [], matched_state: 'Maharashtra',
+        items: [{
+          metric: 'gva_per_worker', label: 'Value added per worker', definition: 'd', value: 100,
+          geography_level_used: 'state', geography: 'Maharashtra', industry_used: 'Trade', year: 2025,
+          source: 'ASUSE 2025', specificity: 'broad_sector',
+        }],
+      });
+    });
+    const out = await api.getBenchmarks('7');
+    expect(url.endsWith('/businesses/7/benchmarks')).toBe(true);
+    expect(out.items[0].specificity).toBe('broad_sector');
+  });
+});
