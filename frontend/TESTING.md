@@ -60,8 +60,8 @@ date,revenue,expenses,notes
   Run button.
 - **Analysis status panel:** a fresh server business shows 1 of 4 steps (25%). After an analysis,
   2 of 4 (50%). After ticking the recommendation, 3 of 4. After adding a data file, 4 of 4 (100%).
-- **No invented numbers:** Customer count and the category count show "—". The revenue chart and
-  the revenue/expense cards are labelled illustrative.
+- **No invented numbers:** before any analysis the revenue chart and cards are labelled illustrative and
+  the customer count shows "—". After an analysis they use the analysis and say "from your analysis".
 
 ## 4. Findings, Recommendations, Report
 
@@ -73,13 +73,35 @@ date,revenue,expenses,notes
   Export CSV contains the metrics, recommendation and limitations.
 - For a business not on the server, all three pages show "Not saved on the server".
 
-## 5. Upload page (local only)
+## 5. Upload page (needs the backend and a business saved on the server)
 
-- Adding a `.csv` file shows a green message, a row in "Uploaded files" with status "Uploaded —
-  validation needed", and the dashboard's Business data step turns Done.
-- **(not yet run)** A `.txt` file is rejected with "Unsupported file type", and a file over 10 MB
-  is rejected.
-- The file is not read or sent anywhere.
+Run the backend with `DATABASE_URL` set (otherwise imports are validated but their rows are not kept).
+
+- A business that is **Not saved on server** shows a notice and the upload button is disabled. After
+  "Save to server" it works.
+- Choose one of the three data types (Financial records, Customer data, Product / service data) and
+  upload a `.csv` (UTF-8, max 5 MB). The page shows the real result from the server: "validated and
+  saved" with the rows accepted, or "failed validation" with nothing saved.
+- The file appears in "Uploaded files" with its status (Validated / Validated with warnings /
+  Failed validation), rows accepted and error/warning counts. **View issues** lists each problem
+  with its row, column and message.
+- The sample files in `data/samples/<scenario>/` upload as Validated. `data/samples/messy/financials.csv`
+  gives warnings/errors with issues listed.
+- Wrong file types (`.xlsx`, `.txt`) and files over 5 MB are rejected in the browser with a message.
+- After a reload, or on another device, the list and the dashboard's "Business data" step come from
+  the server. "Data available" is shown only while at least one file was validated and stored.
+- The dashboard title is "Dashboard" (there is no time-of-day greeting).
+
+## 5a. Financial, Customers, Products, Trends and Market pages (needs the backend with DATABASE_URL, the demo CSVs uploaded and an analysis run)
+
+- **Financial:** totals for revenue, expenses and profit, a revenue/expenses bar chart and a month-by-month table. A month with
+  no value shows "—" and a gap in the chart, never 0. Months with incomplete expenses are listed in "Notes".
+- **Customers:** active customers, spend and transactions by month. Products: ranked table with revenue, cost, margin and share.
+- **Trends:** month-over-month movement plus the "Industry comparison (ASUSE survey)" table.
+- **No analysis yet:** each page asks you to run an analysis from the dashboard instead of showing numbers.
+- **Market:** an information banner saying no local market data source is connected, location / industry cards and the
+  industry comparison. It must not show any competitor, demand or price figures.
+- **Not saved on the server:** every page shows the same "Not saved on the server" notice.
 
 ## 6. Build
 
@@ -88,7 +110,7 @@ date,revenue,expenses,notes
 
 ## Known limits
 
-- Accounts, uploads and deleting a business are local-only.
-- The dashboard chart and the revenue/expense cards are demo data.
-- Results are placeholders until the backend uses a real analysis engine.
+- Accounts are local-only. Uploading data needs the backend.
+- Before an analysis has run, the dashboard chart and cards show illustrative demo data.
+- The Market page has no data source beyond the business profile and the survey comparison.
 - Automated tests (`npm test`) cover the API client and helper functions only, not the screens.
