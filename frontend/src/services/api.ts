@@ -34,6 +34,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   } catch {
     throw new ApiError(0, 'network_error', 'Cannot reach the BizIQ server. Check that the backend is running.');
   }
+  if (res.status === 204) return undefined as T;
   if (!res.ok) {
     let body: any = null;
     try { body = await res.json(); } catch { /* error body was not JSON */ }
@@ -225,6 +226,8 @@ export const api = {
     request<BusinessRead>('/businesses', { method: 'POST', body: JSON.stringify(data) }),
   updateBusiness: (id: string, data: BusinessUpdate) =>
     request<BusinessRead>(`/businesses/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteBusiness: (id: string) =>
+    request<void>(`/businesses/${id}`, { method: 'DELETE' }),
 
   runAnalysis: (businessId: string) =>
     request<AnalysisResult>(`/businesses/${businessId}/analyses`, { method: 'POST' }),

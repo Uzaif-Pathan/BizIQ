@@ -67,3 +67,17 @@ def test_missing_business_returns_404_format(client):
 def test_invalid_business_id_is_validation_error(client):
     r = client.get("/api/v1/businesses/not-a-number")
     assert r.status_code == 422
+
+
+def test_delete_business_returns_204_and_removes_business(client, business):
+    deleted = client.delete(f"/api/v1/businesses/{business['id']}")
+    assert deleted.status_code == 204
+    assert deleted.content == b""
+    assert client.get(f"/api/v1/businesses/{business['id']}").status_code == 404
+    assert client.get("/api/v1/businesses").json() == []
+
+
+def test_delete_missing_business_returns_404_format(client):
+    response = client.delete("/api/v1/businesses/999999999")
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "not_found"

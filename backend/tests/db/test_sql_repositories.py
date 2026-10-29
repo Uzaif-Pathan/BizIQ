@@ -157,3 +157,21 @@ def select_recommendation():
     from app.models import Recommendation
 
     return select(Recommendation)
+
+
+def test_delete_business_returns_false_for_missing_and_cascades_analysis_rows(db):
+    from sqlalchemy import select
+
+    from app.models import AnalysisFinding, AnalysisRun, Recommendation
+
+    repo, analysis_repo = SqlBusinessRepository(db), SqlAnalysisRepository(db)
+    business = _create(repo)
+    analysis_service.run_analysis(business, mock_engine, analysis_repo, repo)
+    assert db.scalar(select(AnalysisRun.analysis_id).limit(1)) is not None
+
+    assert repo.delete(business.id) is True
+    assert repo.get(business.id) is None
+    assert db.scalar(select(AnalysisRun.analysis_id).limit(1)) is None
+    assert db.scalar(select(AnalysisFinding.finding_id).limit(1)) is None
+    assert db.scalar(select(Recommendation.recommendation_id).limit(1)) is None
+    assert repo.delete(business.id) is False

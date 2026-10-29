@@ -1,8 +1,8 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
-from app.api.deps import get_business_repo
+from app.api.deps import get_analysis_repo, get_business_repo, get_import_repo
 from app.core.errors import AppError
 from app.schemas.business import BusinessCreate, BusinessRead, BusinessUpdate
 
@@ -39,3 +39,24 @@ def update_business(
     if business is None:
         raise AppError("Business not found.", status_code=404)
     return business
+
+
+@router.delete("/{business_id}", status_code=204)
+def delete_business(
+    business_id: int,
+    repo=Depends(get_business_repo),
+    analysis_repo=Depends(get_analysis_repo),
+    import_repo=Depends(get_import_repo),
+):
+    deleted = repo.delete(business_id)
+    if not deleted:
+        raise AppError("Business not found.", status_code=404)
+
+    # SQL repositories rely on the existing database ON DELETE CASCADE constraints.
+    # In-memory storage keeps these records in separate repositories, so clean them up here.
+    if hasattr(analysis_repo, "delete_for_business"):
+        analysis_repo.delete_for_business(business_id)
+    if hasattr(import_repo, "delete_for_business"):
+        import_repo.delete_for_business(business_id)
+
+    return Response(status_code=204)

@@ -57,6 +57,16 @@ class InMemoryImportRepository:
         self._next_id += 1
         return record
 
+    def delete_for_business(self, business_id: int) -> None:
+        """Delete in-memory import records and their validation issues for a business."""
+        import_ids = [
+            import_id for import_id, item in self._imports.items()
+            if item.business_id == business_id
+        ]
+        for import_id in import_ids:
+            self._imports.pop(import_id, None)
+            self._issues.pop(import_id, None)
+
     def get(self, business_id: int, import_id: int) -> Optional[DataImportRead]:
         item = self._imports.get(import_id)
         return item if item is not None and item.business_id == business_id else None
