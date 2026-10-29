@@ -1,9 +1,10 @@
-"""In-memory repositories used only when DATABASE_URL is not configured.
+"""Temporary in-memory storage.
 
-PostgreSQL-backed implementations live in ``app.repositories.sql`` and the
-dependency selector in ``app.api.deps`` chooses the implementation per request.
-In-memory state is process-local and disappears when the API restarts. The
-in-memory import repository intentionally does not retain normalized uploaded rows.
+These classes have the same methods a SQLAlchemy repository will need.
+When the database models are ready, write DB versions with the same method
+names and change the two functions in app/api/deps.py. The routes stay as they are.
+
+Data is lost when the server restarts. That is expected for this stage.
 """
 
 from datetime import datetime, timezone
@@ -38,6 +39,10 @@ class InMemoryBusinessRepository:
     def get(self, business_id: int) -> Optional[BusinessRead]:
         return self._items.get(business_id)
 
+    def delete(self, business_id: int) -> bool:
+        """Remove a business; return False when it does not exist."""
+        return self._items.pop(business_id, None) is not None
+
     def update(self, business_id: int, data: BusinessUpdate) -> Optional[BusinessRead]:
         current = self._items.get(business_id)
         if current is None:
@@ -67,6 +72,16 @@ class InMemoryAnalysisRepository:
 
     def get(self, analysis_id: str) -> Optional[AnalysisResult]:
         return self._items.get(analysis_id)
+
+    def delete_for_business(self, business_id: int) -> None:
+        """Delete in-memory analysis records owned by a business."""
+        for analysis_id, result in list(self._items.items()):
+            try:
+                matches = int(result.business_id) == business_id
+            except (TypeError, ValueError):
+                matches = False
+            if matches:
+                del self._items[analysis_id]
 
     def list_for_business(self, business_id: str) -> List[AnalysisRunSummary]:
         runs = [r for r in self._items.values() if r.business_id == business_id]

@@ -151,6 +151,15 @@ class SqlBusinessRepository:
         row = self.db.get(Business, business_id)
         return self._to_read(row) if row else None
 
+    def delete(self, business_id: int) -> bool:
+        """Delete a business and rely on database ON DELETE CASCADE constraints."""
+        row = self.db.get(Business, business_id)
+        if row is None:
+            return False
+        self.db.delete(row)
+        self.db.commit()
+        return True
+
     def update(self, business_id: int, data: BusinessUpdate) -> Optional[BusinessRead]:
         row = self.db.get(Business, business_id)
         if row is None:
