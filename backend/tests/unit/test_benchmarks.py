@@ -71,3 +71,42 @@ def test_unmatched_industry_is_partial_not_invented(rows):
 def test_no_rows_means_unavailable(rows):
     out = select_benchmarks([], {"industry": "retail", "business_type": "retail", "state": "Maharashtra"})
     assert out["status"] == "unavailable" and out["items"] == []
+
+
+# ---------------- scope labels (item 4) ----------------------------------------------------
+def test_state_rows_are_labelled_broad_and_national_rows_detailed(rows):
+    out = select_benchmarks(rows, {"industry": "grocery retail", "business_type": "retail", "state": "Maharashtra"})
+    by_level = {i["geography_level_used"]: i for i in out["items"]}
+    assert by_level["state"]["specificity"] == "broad_sector" and by_level["state"]["industry_used"] == "Trade"
+    assert by_level["national"]["specificity"] == "detailed_activity"
+    assert by_level["national"]["industry_used"] == "Other Retail Trade"
+    assert all(i["specificity_note"] for i in out["items"])
+    assert any("not equally specific" in n for n in out["notes"])
+
+
+def test_all_industry_rows_are_labelled_all_industries(rows):
+    out = select_benchmarks(rows, {"industry": "space tourism", "business_type": "other", "state": None})
+    assert out["items"] and {i["specificity"] for i in out["items"]} == {"all_industries"}
+    assert not any("not equally specific" in n for n in out["notes"])  # only one kind of row, nothing to contrast
+
+
+def test_national_only_result_has_no_mixed_specificity_note(rows):
+    out = select_benchmarks(rows, {"industry": "retail", "business_type": "retail", "state": None})
+    assert {i["specificity"] for i in out["items"]} == {"detailed_activity"}
+    assert not any("not equally specific" in n for n in out["notes"])
+
+
+# ---------------- ASUSE figures must never reach the health score (item 2) ------------------
+def test_asuse_items_do_not_change_the_health_score(rows):
+    from analytics_engine.scoring import compute_health_score
+
+    fin = {"metrics": {k: {"value": v} for k, v in
+                       dict(profit_margin_pct=20.0, revenue_12m_growth_pct=10.0, expenses_yoy_pct=5.0,
+                            revenue_yoy_pct=10.0).items()}, "monthly": [], "trend": {}}
+    asuse = select_benchmarks(rows, {"industry": "grocery retail", "business_type": "retail",
+                                     "state": "Maharashtra"})["items"]
+    assert asuse and not {i["metric"] for i in asuse} & {"profit_margin_pct", "gross_margin_pct"}
+    with_asuse = compute_health_score(fin, None, None, asuse)
+    without = compute_health_score(fin, None, None, None)
+    assert with_asuse["score"] == without["score"]
+    assert all(c["basis"] != "benchmark" for c in with_asuse["components"])
