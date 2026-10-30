@@ -1,0 +1,20 @@
+{
+  "model": "KMeans on log1p(RFM), StandardScaler",
+  "features": [
+    "Recency",
+    "Frequency",
+    "Monetary"
+  ],
+  "k": 3,
+  "silhouette": 0.3466,
+  "stability_mean_ARI": 0.9896,
+  "segment_names": {
+    "0": "Lapsed / low value",
+    "1": "Champions (recent, frequent, high spend)",
+    "2": "Active, moderate value"
+  },
+  "n_customers_trained": 5878,
+  "training_data": "UCI Online Retail II (CC BY 4.0), development only",
+  "preprocessing": "drop missing CustomerID, cancellations (invoice starts with C), quantity<=0, price<=0, duplicates",
+  "notes": "Segments describe past behaviour; not a prediction."
+}

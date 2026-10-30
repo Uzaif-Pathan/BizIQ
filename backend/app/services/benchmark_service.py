@@ -74,6 +74,23 @@ def match_state(state: Optional[str], known_states: Iterable[str]) -> Optional[s
     return None
 
 
+def _specificity(row: Dict[str, Any]) -> str:
+    """How narrow the row's industry is: all_industries, broad_sector (state level) or detailed_activity."""
+    if row["industry_name"] == "All":
+        return "all_industries"
+    if row["geography_level"] == "STATE":
+        return "broad_sector"
+    return "detailed_activity"
+
+
+SPECIFICITY_NOTES = {
+    "all_industries": "Covers all industries together, so it is not specific to this business's category.",
+    "broad_sector": "Broad sector only (state data is not split into detailed activities), so it is less specific "
+                    "than the national activity comparison.",
+    "detailed_activity": "Specific activity category, national level only.",
+}
+
+
 def _worker_group(metric: str) -> str:
     return "All" if metric == "emolument_per_hired_worker" else "not_applicable"
 
@@ -99,6 +116,7 @@ def select_benchmarks(rows: List[Dict[str, Any]], business: Dict[str, Any]) -> D
         candidates += [r for r in pool if r["geography_level"] == "NATIONAL"
                        and r["industry_name"] == profile["activity"]]
         for r in candidates:
+            specificity = _specificity(r)
             items.append({
                 "metric": metric, "label": label, "definition": definition,
                 "value": float(r["metric_value"]), "unit": r.get("metric_unit"),
@@ -108,6 +126,7 @@ def select_benchmarks(rows: List[Dict[str, Any]], business: Dict[str, Any]) -> D
                 "establishment_type": r["establishment_type"], "worker_group": r["worker_group"],
                 "year": r["reference_year"], "source": r.get("source_name") or "ASUSE 2025",
                 "note": r.get("confidence_note"),
+                "specificity": specificity, "specificity_note": SPECIFICITY_NOTES[specificity],
             })
     notes = [CONTEXT_NOTE]
     if profile["match"] == "business_type":
@@ -118,6 +137,9 @@ def select_benchmarks(rows: List[Dict[str, Any]], business: Dict[str, Any]) -> D
         notes.append(f"No survey data was found for the state '{business['state']}'; only national figures are shown.")
     if not business.get("state"):
         notes.append("The business has no state recorded; only national figures are shown.")
+    if len({i["specificity"] for i in items}) > 1:
+        notes.append("State figures cover a broad sector, while national figures cover a specific activity. "
+                     "They are not equally specific, so do not read the two as the same comparison.")
     notes.append("District and region level figures are not available in this data.")
     status = "unavailable" if not items else ("available" if profile["match"] == "keyword" else "partial")
     return {"status": status, "items": items, "matched_industry": profile, "matched_state": state,

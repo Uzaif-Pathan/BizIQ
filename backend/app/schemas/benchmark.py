@@ -20,6 +20,10 @@ class BenchmarkItem(BaseModel):
     year: int
     source: str
     note: Optional[str] = None
+    # How narrow the comparison group is: all_industries | broad_sector | detailed_activity.
+    # State rows are only broad sectors; detailed activities exist only nationally.
+    specificity: str = "detailed_activity"
+    specificity_note: Optional[str] = None
 
 
 class MatchedIndustry(BaseModel):
