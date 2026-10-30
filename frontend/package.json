@@ -8,8 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "npm run test:node && npm run test:unit",
-    "test:node": "node --test tests/series.test.js tests/series-pages.test.js",
-    "test:unit": "vitest run tests/api.test.ts tests/businessState.test.js tests/format.test.js"
+    "test:node": "node --test tests/series.test.js tests/series-pages.test.js tests/stale-copy.test.js",
+    "test:unit": "vitest run tests/api.test.ts tests/businessState.test.js tests/format.test.js tests/imports.test.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",

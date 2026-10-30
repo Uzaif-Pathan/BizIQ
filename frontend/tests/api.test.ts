@@ -1,4 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
+// Node 18 has no global File (browsers and Node 20+ do), so take it from node:buffer.
+import { File } from 'node:buffer';
 import {
   api,
   ApiError,
@@ -159,5 +161,68 @@ describe('benchmarks', () => {
     const out = await api.getBenchmarks('7');
     expect(url.endsWith('/businesses/7/benchmarks')).toBe(true);
     expect(out.items[0].specificity).toBe('broad_sector');
+  });
+});
+
+describe('data imports', () => {
+  const importRecord = {
+    id: '3', business_id: '7', data_type: 'financials', file_name: 'financials.csv', status: 'completed',
+    row_count: 24, valid_row_count: 24, error_count: 0, warning_count: 0,
+    created_at: '2026-10-30T00:00:00Z', updated_at: '2026-10-30T00:00:00Z',
+  };
+
+  it('uploads a CSV as multipart form data and does not force a JSON content type', async () => {
+    let url = '';
+    let init: any = null;
+    vi.stubGlobal('fetch', async (u: string, i: any) => {
+      url = u;
+      init = i;
+      return jsonResponse(201, importRecord);
+    });
+    const file = new File(['period,revenue\n2025-01,100\n'], 'financials.csv', { type: 'text/csv' });
+    const out = await api.uploadImport('7', 'financials', file);
+    expect(url.endsWith('/businesses/7/imports')).toBe(true);
+    expect(init.method).toBe('POST');
+    expect(init.body instanceof FormData).toBe(true);
+    expect(init.body.get('data_type')).toBe('financials');
+    expect((init.body.get('file') as File).name).toBe('financials.csv');
+    // The browser must add the multipart boundary itself, so no Content-Type may be set here.
+    expect(Object.keys(init.headers).map((h) => h.toLowerCase())).not.toContain('content-type');
+    expect(out.status).toBe('completed');
+  });
+
+  it('still sends JSON requests with a JSON content type', async () => {
+    let init: any = null;
+    vi.stubGlobal('fetch', async (_u: string, i: any) => {
+      init = i;
+      return jsonResponse(200, []);
+    });
+    await api.listBusinesses();
+    expect(init.headers['Content-Type']).toBe('application/json');
+  });
+
+  it('shows the backend reason when a file is rejected', async () => {
+    vi.stubGlobal('fetch', async () =>
+      jsonResponse(400, { error: { code: 'bad_request', message: 'The file is not UTF-8 text. Please save it as a CSV (UTF-8).' } }),
+    );
+    const file = new File(['x'], 'a.csv');
+    const err: any = await api.uploadImport('7', 'customers', file).catch((e) => e);
+    expect(err instanceof ApiError).toBe(true);
+    expect(err.status).toBe(400);
+    expect(describeError(err)).toContain('not UTF-8');
+  });
+
+  it('lists imports and their issues from the right routes', async () => {
+    const urls: string[] = [];
+    vi.stubGlobal('fetch', async (u: string) => {
+      urls.push(u);
+      return jsonResponse(200, []);
+    });
+    await api.listImports('7');
+    await api.getImport('7', '3');
+    await api.listImportIssues('7', '3', { severity: 'error', limit: 20, offset: 40 });
+    expect(urls[0].endsWith('/businesses/7/imports')).toBe(true);
+    expect(urls[1].endsWith('/businesses/7/imports/3')).toBe(true);
+    expect(urls[2].endsWith('/businesses/7/imports/3/issues?severity=error&limit=20&offset=40')).toBe(true);
   });
 });

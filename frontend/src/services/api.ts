@@ -27,9 +27,12 @@ export function describeError(err: unknown): string {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let res: Response;
   try {
+    // A FormData body (file upload) must not get a JSON Content-Type: the browser has to set the
+    // multipart boundary itself.
+    const isForm = typeof FormData !== 'undefined' && options.body instanceof FormData;
     res = await fetch(`${BASE_URL}${path}`, {
       ...options,
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      headers: isForm ? { ...(options.headers || {}) } : { 'Content-Type': 'application/json', ...(options.headers || {}) },
     });
   } catch {
     throw new ApiError(0, 'network_error', 'Cannot reach the BizIQ server. Check that the backend is running.');
@@ -215,6 +218,34 @@ export interface BenchmarkResponse {
   notes: string[];
 }
 
+// ---------- Data imports (backend/app/schemas/data_import.py) ----------
+export type ImportDataType = 'financials' | 'customers' | 'products';
+export type ImportStatus = 'pending' | 'processing' | 'completed' | 'completed_with_warnings' | 'failed';
+export interface DataImportRead {
+  id: string;
+  business_id: string;
+  data_type: ImportDataType;
+  file_name: string;
+  status: ImportStatus;
+  row_count?: number | null;
+  valid_row_count?: number | null;
+  error_count?: number | null;
+  warning_count?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface ValidationIssueRead {
+  id: string;
+  import_id: string;
+  severity: 'error' | 'warning';
+  code: string;
+  message: string;
+  row_number?: number | null; // 1-based; null for file-level issues
+  column?: string | null;
+  value?: string | null;
+  created_at: string;
+}
+
 // ---------- API calls ----------
 export const api = {
   health: () => request<unknown>('/health'),
@@ -239,6 +270,29 @@ export const api = {
   getReport: (id: string) => request<ReportPayload>(`/analyses/${id}/report`),
 
   getBenchmarks: (businessId: string) => request<BenchmarkResponse>(`/businesses/${businessId}/benchmarks`),
+
+  // Upload one CSV. The backend validates it during this request and answers with the import record
+  // (status failed + issues when the file cannot be used; that is still a 201).
+  uploadImport: (businessId: string, dataType: ImportDataType, file: File) => {
+    const form = new FormData();
+    form.append('data_type', dataType);
+    form.append('file', file, file.name);
+    return request<DataImportRead>(`/businesses/${businessId}/imports`, { method: 'POST', body: form });
+  },
+  listImports: (businessId: string) => request<DataImportRead[]>(`/businesses/${businessId}/imports`),
+  getImport: (businessId: string, importId: string) =>
+    request<DataImportRead>(`/businesses/${businessId}/imports/${importId}`),
+  listImportIssues: (
+    businessId: string,
+    importId: string,
+    opts: { severity?: 'error' | 'warning'; limit?: number; offset?: number } = {},
+  ) => {
+    const q = new URLSearchParams();
+    if (opts.severity) q.set('severity', opts.severity);
+    q.set('limit', String(opts.limit ?? 100));
+    q.set('offset', String(opts.offset ?? 0));
+    return request<ValidationIssueRead[]>(`/businesses/${businessId}/imports/${importId}/issues?${q}`);
+  },
 };
 
 // ---------- Mapping between the backend and the existing UI shape ----------

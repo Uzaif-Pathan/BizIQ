@@ -57,23 +57,24 @@ The frontend talks to the FastAPI backend through `src/services/api.ts`.
 - My businesses: the list is loaded from the server and new businesses are created there.
 - Business profile: name, industry, business model, city/state, description and stage are saved to the server.
 - Dashboard "Analysis" panel: runs an analysis and shows the latest result. Missing metrics are shown as "Not available", never as 0.
+- Data upload: each CSV is sent to the server (`POST /businesses/{id}/imports`), and the page shows the real status and the list of issues.
+- Financial, Customers, Products/Services and Trends pages: charts and tables come from the `series` block of the latest analysis. A month with no value is a gap, never 0.
 - Findings, Recommendations and Report pages: built from the latest analysis result.
 - Businesses that lost their server copy can be saved again with the "Save to server" button.
 
-The backend currently keeps businesses and analyses in memory only (no database yet). Restarting the backend empties its list, and the app then tags those businesses "Not saved on server".
+With `DATABASE_URL` set, the backend stores everything in PostgreSQL, including the rows from uploaded CSV files. Without it, the backend falls back to memory: restarting it empties its list (the app then tags those businesses "Not saved on server"), and uploaded files are validated and recorded but their rows are discarded, so an analysis fails with "no usable data". Use the database for real runs.
 
 ### What is still local-only
 
 - Accounts and sign-in (browser localStorage, not secure authentication).
-- The data upload page: files are not sent to the server or parsed.
 - Deleting a business: there is no delete endpoint yet, so the button is disabled for businesses saved on the server.
-- The dashboard chart, the revenue and expense cards, and the analysis-progress panel use illustrative demo data. Customer count and category counts show "—".
+- Before an analysis has run, the dashboard chart and cards show illustrative demo data (labelled as such). After one, they use the analysis.
 - Team size, website and currency in the business profile.
-- The Financial, Customers, Products/Services, Trends and Market pages (marked "not connected").
+- The Market page has no local market data source. It shows the business profile and the industry survey comparison, and says so; it never estimates market figures.
 
 ### Sample output
 
-While the backend uses its development engine (its `method_version` starts with `mock`), results are placeholders. The app labels them "Sample output — not calculated from your data".
+The API runs the real analytics engine. If a server ever returns a result whose `method_version` starts with `mock` (used only in tests), the app labels it "Sample output — not calculated from your data".
 
 ## Important implementation notes
 
